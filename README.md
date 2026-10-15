@@ -1,7 +1,7 @@
 # 桌面便笺 (Desktop Sticky Notes for Obsidian)
 
 [![Obsidian Plugin](https://img.shields.io/badge/Obsidian-Plugin-blue?logo=obsidian)](https://obsidian.md)
-[![License: 0-BSD](https://img.shields.io/badge/License-0--BSD-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Desktop Sticky Notes** 是一款专为 Obsidian 打造的拟物化独立桌面便笺插件。融合**桌面悬浮纸质便笺**与 **Obsidian 原生 Live Preview 实时预览引擎**，既保留了经典便笺的极简即时手感，又让所有灵感数据无缝沉淀在你的本地 Markdown 知识库中。
 
@@ -73,4 +73,4 @@ npm run lint
 
 ## 📄 开源许可
 
-本项目遵循 [0-BSD License](LICENSE) 许可开源。
+本项目遵循 [MIT License](LICENSE) 许可开源。
