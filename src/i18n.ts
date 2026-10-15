@@ -73,6 +73,8 @@ const zh = {
 	settingPinnedDesc: '新建便笺时是否默认保持在桌面最前',
 	settingAutoHideToolbar: '鼠标离开便笺时自动隐藏工具栏',
 	settingAutoHideToolbarDesc: '鼠标移入便笺窗口时平滑显示工具栏，移出时自动隐藏，提供极致清爽的便笺纸体验',
+	settingHideFromTaskbar: '从系统任务栏隐藏便笺图标',
+	settingHideFromTaskbarDesc: '开启后，便笺小窗不占用系统任务栏位置，仅保留一个主程序图标 (仅 Windows / Linux 生效)',
 };
 
 const en: typeof zh = {
@@ -142,6 +144,8 @@ const en: typeof zh = {
 	settingPinnedDesc: 'Whether sticky notes stay on top by default',
 	settingAutoHideToolbar: 'Auto-hide toolbar when cursor leaves',
 	settingAutoHideToolbarDesc: 'Smoothly show toolbar on hover and auto-hide when mouse leaves for a distraction-free experience',
+	settingHideFromTaskbar: 'Hide sticky notes from taskbar',
+	settingHideFromTaskbarDesc: 'Keep only the main Obsidian icon on the taskbar, without cluttering with sticky note windows (Windows / Linux only)',
 };
 
 export type TranslationKey = keyof typeof zh;

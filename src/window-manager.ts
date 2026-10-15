@@ -9,6 +9,7 @@ import { StickyNoteMeta } from './types';
 import type DesktopStickyNotesPlugin from './main';
 import { DesktopStickyToolbar } from './toolbar';
 import { StickyNotesHubModal } from './hub-modal';
+import { setWindowSkipTaskbar } from './electron-helper';
 import { t } from './i18n';
 
 export class StickyWindowManager {
@@ -135,6 +136,9 @@ export class StickyWindowManager {
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
 		oldToolbar?.remove();
 
+		// 同步当前配置的任务栏可见性状态 (开启隐藏或恢复显示)
+		setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
+
 		// 创建并挂载顶部桌面便笺富文本工具栏
 		new DesktopStickyToolbar(
 			this.plugin,
@@ -170,6 +174,22 @@ export class StickyWindowManager {
 			},
 			{ once: true },
 		);
+	}
+
+	/**
+	 * 批量同步更新所有已打开桌面便笺窗口的任务栏可见性 (隐藏或恢复)
+	 */
+	public updateAllNotesTaskbarVisibility(skip: boolean) {
+		const leaves = this.app.workspace.getLeavesOfType('markdown');
+		for (const leaf of leaves) {
+			const view = leaf.view;
+			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
+				const targetWin = view.containerEl.ownerDocument.defaultView;
+				if (targetWin) {
+					setWindowSkipTaskbar(targetWin, skip);
+				}
+			}
+		}
 	}
 
 	/**

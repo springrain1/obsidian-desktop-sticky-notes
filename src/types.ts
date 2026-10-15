@@ -93,6 +93,7 @@ export interface StickyPluginSettings {
 	defaultHeight: number;
 	defaultPinned: boolean;
 	autoHideToolbar: boolean;
+	hideFromTaskbar: boolean;
 }
 
 export const DEFAULT_SETTINGS: StickyPluginSettings = {
@@ -102,4 +103,5 @@ export const DEFAULT_SETTINGS: StickyPluginSettings = {
 	defaultHeight: 380,
 	defaultPinned: false,
 	autoHideToolbar: true,
+	hideFromTaskbar: true,
 };

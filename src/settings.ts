@@ -99,5 +99,18 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName(t('settingHideFromTaskbar'))
+			.setDesc(t('settingHideFromTaskbarDesc'))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.hideFromTaskbar)
+					.onChange(async (val) => {
+						this.plugin.settings.hideFromTaskbar = val;
+						await this.plugin.saveSettings();
+						this.plugin.windowManager.updateAllNotesTaskbarVisibility(val);
+					}),
+			);
 	}
 }
