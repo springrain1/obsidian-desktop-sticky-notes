@@ -434,23 +434,27 @@ export class DesktopStickyToolbar {
 	private updatePinButtonUI() {
 		if (!this.pinBtnEl) return;
 
+		let tooltip = '';
 		switch (this.currentMode) {
 			case 'float':
 				this.pinBtnEl.removeClass('is-active');
 				setIcon(this.pinBtnEl, 'pin');
-				this.pinBtnEl.setAttribute('title', t('modeFloatTooltip'));
+				tooltip = t('modeFloatTooltip');
 				break;
 			case 'pin':
 				this.pinBtnEl.addClass('is-active');
 				setIcon(this.pinBtnEl, 'pin');
-				this.pinBtnEl.setAttribute('title', t('modePinTooltip'));
+				tooltip = t('modePinTooltip');
 				break;
 			case 'dock':
 				this.pinBtnEl.addClass('is-active');
 				setIcon(this.pinBtnEl, 'anchor');
-				this.pinBtnEl.setAttribute('title', t('modeDockTooltip'));
+				tooltip = t('modeDockTooltip');
 				break;
 		}
+
+		this.pinBtnEl.setAttribute('title', tooltip);
+		this.pinBtnEl.setAttribute('aria-label', tooltip);
 	}
 
 	/**

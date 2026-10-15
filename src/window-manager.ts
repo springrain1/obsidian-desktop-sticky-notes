@@ -45,11 +45,13 @@ export class StickyWindowManager {
 		const prefix = t('filePrefix');
 		const filePath = normalizePath(`${folderPath}/${prefix}_${dateStr}.md`);
 
+		const defaultMode = this.plugin.settings.defaultPinned ? 'pin' : 'float';
 		const initialContent = [
 			'---',
 			'is_sticky: true',
 			`color: "${this.plugin.settings.defaultColor}"`,
 			`pinned: ${this.plugin.settings.defaultPinned}`,
+			`mode: "${defaultMode}"`,
 			`created_at: "${now.toISOString()}"`,
 			'---',
 			'',
@@ -136,17 +138,15 @@ export class StickyWindowManager {
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
 		oldToolbar?.remove();
 
-		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限)
+		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限，兼顾单屏与多显示器副屏)
 		const cache = this.app.metadataCache.getFileCache(file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
 		if (fm.bounds && typeof fm.bounds.x === 'number' && typeof fm.bounds.y === 'number') {
-			const screenRec = targetWin.screen as unknown as Record<string, number | undefined>;
-			const availLeft = screenRec.availLeft ?? 0;
-			const availTop = screenRec.availTop ?? 0;
-			const availW = targetWin.screen.availWidth || 1920;
-			const safeX = Math.max(availLeft, Math.min(fm.bounds.x, availLeft + availW - 100));
-			const safeY = Math.max(availTop, fm.bounds.y);
-			setWindowPosition(targetWin, safeX, safeY);
+			if (Number.isFinite(fm.bounds.x) && Number.isFinite(fm.bounds.y)) {
+				// 仅限制 Y 轴不要跑出屏幕上方不可视盲区，允许 X 轴自由跨多显示器展示
+				const safeY = Math.max(-20, fm.bounds.y);
+				setWindowPosition(targetWin, fm.bounds.x, safeY);
+			}
 		}
 
 		// 同步当前配置的任务栏可见性状态 (开启隐藏或恢复显示)
