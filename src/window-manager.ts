@@ -9,7 +9,7 @@ import { StickyNoteMeta } from './types';
 import type DesktopStickyNotesPlugin from './main';
 import { DesktopStickyToolbar } from './toolbar';
 import { StickyNotesHubModal } from './hub-modal';
-import { setWindowSkipTaskbar } from './electron-helper';
+import { setWindowSkipTaskbar, getCurrentWindowBounds, setWindowPosition } from './electron-helper';
 import { t } from './i18n';
 
 export class StickyWindowManager {
@@ -136,6 +136,19 @@ export class StickyWindowManager {
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
 		oldToolbar?.remove();
 
+		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限)
+		const cache = this.app.metadataCache.getFileCache(file);
+		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
+		if (fm.bounds && typeof fm.bounds.x === 'number' && typeof fm.bounds.y === 'number') {
+			const screenRec = targetWin.screen as unknown as Record<string, number | undefined>;
+			const availLeft = screenRec.availLeft ?? 0;
+			const availTop = screenRec.availTop ?? 0;
+			const availW = targetWin.screen.availWidth || 1920;
+			const safeX = Math.max(availLeft, Math.min(fm.bounds.x, availLeft + availW - 100));
+			const safeY = Math.max(availTop, fm.bounds.y);
+			setWindowPosition(targetWin, safeX, safeY);
+		}
+
 		// 同步当前配置的任务栏可见性状态 (开启隐藏或恢复显示)
 		setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
 
@@ -151,26 +164,26 @@ export class StickyWindowManager {
 		// 自动聚焦编辑器
 		view.editor.focus();
 
-		// 使用 AbortController 严格管理窗口 resize 监听器生命周期，杜绝内存泄漏
+		// 使用 AbortController 严格管理窗口 resize 与 move 监听器生命周期，杜绝内存泄漏
 		const abortController = new AbortController();
-		let resizeTimer: number | null = null;
+		let boundsTimer: number | null = null;
 
-		targetWin.addEventListener(
-			'resize',
-			() => {
-				if (resizeTimer !== null) targetWin.clearTimeout(resizeTimer);
-				resizeTimer = targetWin.setTimeout(() => {
-					void this.persistWindowBounds(file, targetWin);
-				}, 800);
-			},
-			{ signal: abortController.signal },
-		);
+		const onBoundsChange = () => {
+			if (boundsTimer !== null) targetWin.clearTimeout(boundsTimer);
+			boundsTimer = targetWin.setTimeout(() => {
+				void this.persistWindowBounds(file, targetWin);
+			}, 500);
+		};
+
+		targetWin.addEventListener('resize', onBoundsChange, { signal: abortController.signal });
+		targetWin.addEventListener('blur', onBoundsChange, { signal: abortController.signal });
 
 		// 当 leaf 销毁或关闭时彻底取消监听
 		targetWin.addEventListener(
 			'pagehide',
 			() => {
 				abortController.abort();
+				void this.persistWindowBounds(file, targetWin);
 			},
 			{ once: true },
 		);
@@ -193,14 +206,19 @@ export class StickyWindowManager {
 	}
 
 	/**
-	 * 持久化记录便笺窗口实际有效消费的宽高
+	 * 全量持久化记录便笺窗口的真实物理几何坐标与尺寸
 	 */
 	private async persistWindowBounds(file: TFile, win: Window) {
 		try {
+			const b = getCurrentWindowBounds(win);
 			await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+				const prev = (fm.bounds as Record<string, unknown>) || {};
 				fm.bounds = {
-					width: win.innerWidth,
-					height: win.innerHeight,
+					...prev,
+					x: b.x,
+					y: b.y,
+					width: b.width,
+					height: b.height,
 				};
 			});
 		} catch {

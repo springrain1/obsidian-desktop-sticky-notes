@@ -29,12 +29,21 @@ const zh = {
 	tbImage: '从资源管理器选择图片插入 (或直接 Ctrl+V 粘贴)',
 	tbTitle: '显示/隐藏笔记标题',
 	tbYaml: '显示/隐藏元数据 (YAML)',
+	tbRestoreToMain: '恢复为正常窗口 (收回至主库)',
 	tbDelete: '移入废纸篓 (删除便笺)',
 	tbClose: '关闭便笺 (随时可在管理器找回)',
+
+	// 三态窗口模式 Tooltip
+	modeFloatTooltip: '当前：普通浮动 (点击切换为置顶)',
+	modePinTooltip: '当前：窗口置顶 (点击切换为停靠桌面)',
+	modeDockTooltip: '当前：停靠桌面 (点击恢复为普通浮动)',
 
 	// 通知 Notice
 	noticePinned: '便笺已置顶',
 	noticeUnpinned: '便笺已取消置顶',
+	noticeDocked: '便笺已停靠在桌面',
+	noticeFloat: '便笺已恢复为普通浮动',
+	noticeRestoredToMain: '已恢复至主窗口打开',
 	noticeTitleShow: '已显示笔记标题',
 	noticeTitleHide: '已隐藏笔记标题',
 	noticeYamlShow: '已显示元数据 (YAML)',
@@ -100,12 +109,21 @@ const en: typeof zh = {
 	tbImage: 'Insert image from file explorer (or Ctrl+V to paste)',
 	tbTitle: 'Show/hide note title',
 	tbYaml: 'Show/hide metadata (YAML)',
+	tbRestoreToMain: 'Restore to main window',
 	tbDelete: 'Move to trash (Delete note)',
 	tbClose: 'Close sticky note (Retrievable from Hub)',
+
+	// Three-state Window Mode Tooltips
+	modeFloatTooltip: 'Current: Floating (Click to pin)',
+	modePinTooltip: 'Current: Pinned (Click to dock)',
+	modeDockTooltip: 'Current: Docked (Click to float)',
 
 	// Notices
 	noticePinned: 'Sticky note pinned',
 	noticeUnpinned: 'Sticky note unpinned',
+	noticeDocked: 'Sticky note docked to desktop',
+	noticeFloat: 'Sticky note restored to floating',
+	noticeRestoredToMain: 'Restored to main window',
 	noticeTitleShow: 'Note title visible',
 	noticeTitleHide: 'Note title hidden',
 	noticeYamlShow: 'Metadata (YAML) visible',

@@ -5,8 +5,8 @@ import {
 	Notice,
 	Editor,
 } from 'obsidian';
-import { STICKY_COLORS, StickyNoteMeta, getStickyColorName, StickyColorInfo } from './types';
-import { setWindowTopmost } from './electron-helper';
+import { STICKY_COLORS, StickyNoteMeta, WindowMode, getStickyColorName, StickyColorInfo } from './types';
+import { setWindowTopmost, setWindowSkipTaskbar } from './electron-helper';
 import { ConfirmModal } from './confirm-modal';
 import { t } from './i18n';
 import type DesktopStickyNotesPlugin from './main';
@@ -23,7 +23,7 @@ export class DesktopStickyToolbar {
 	private titleBtnEl!: HTMLElement;
 	private yamlBtnEl!: HTMLElement;
 	private skinSelectorPopover: HTMLElement | null = null;
-	private isPinned = false;
+	private currentMode: WindowMode = 'float';
 	private showTitle = false;
 	private showYaml = false;
 	private currentColor = 'yellow';
@@ -53,19 +53,24 @@ export class DesktopStickyToolbar {
 		this.initMeta();
 		this.buildToolbar();
 		this.applyColorTheme(this.currentColor);
-		if (this.isPinned) {
-			setWindowTopmost(this.targetWin, true);
-		}
+		this.applyWindowMode(this.currentMode, false);
 	}
 
 	/**
-	 * 从文件元数据初始化置顶与配色
+	 * 从文件元数据初始化窗口模式与配色
 	 */
 	private initMeta() {
 		const cache = this.plugin.app.metadataCache.getFileCache(this.file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
 		this.currentColor = fm.color || this.plugin.settings.defaultColor;
-		this.isPinned = fm.pinned ?? this.plugin.settings.defaultPinned;
+
+		if (fm.mode) {
+			this.currentMode = fm.mode;
+		} else if (fm.pinned !== undefined) {
+			this.currentMode = fm.pinned ? 'pin' : 'float';
+		} else {
+			this.currentMode = this.plugin.settings.defaultPinned ? 'pin' : 'float';
+		}
 	}
 
 	/**
@@ -89,14 +94,13 @@ export class DesktopStickyToolbar {
 			void this.plugin.windowManager.createNewStickyNote();
 		};
 
-		// 2. 窗口置顶 (Pin)
+		// 2. 窗口形态三态流转 (Float -> Pin -> Dock -> Float)
 		this.pinBtnEl = leftGroup.createDiv({
-			cls: `sticky-action-btn sticky-action-pin ${this.isPinned ? 'is-active' : ''}`,
-			title: t('tbPin'),
+			cls: 'sticky-action-btn sticky-action-pin',
 		});
-		setIcon(this.pinBtnEl, 'pin');
+		this.updatePinButtonUI();
 		this.pinBtnEl.onclick = () => {
-			this.togglePin();
+			void this.cycleWindowMode();
 		};
 
 		// 3. 换肤调色盘
@@ -183,10 +187,20 @@ export class DesktopStickyToolbar {
 			this.toggleYaml();
 		};
 
-		// 右侧操作组：删除便笺、关闭便笺
+		// 右侧操作组：恢复为主窗口、删除便笺、关闭便笺
 		const rightGroup = this.toolbarEl.createDiv({ cls: 'sticky-toolbar-group right' });
 
-		// 11. 删除便笺（移入废纸篓，带确认对话框防误触）
+		// 11. 恢复为 Obsidian 主窗口普通笔记视窗 (收回收纳至主库)
+		const restoreBtn = rightGroup.createDiv({
+			cls: 'sticky-action-btn sticky-action-restore',
+			title: t('tbRestoreToMain'),
+		});
+		setIcon(restoreBtn, 'arrow-down-left');
+		restoreBtn.onclick = () => {
+			void this.restoreToMainWindow();
+		};
+
+		// 12. 删除便笺（移入废纸篓，带确认对话框防误触）
 		const delBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-delete',
 			title: t('tbDelete'),
@@ -203,7 +217,7 @@ export class DesktopStickyToolbar {
 			}).open();
 		};
 
-		// 12. 关闭便笺
+		// 13. 关闭便笺
 		const closeBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-close',
 			title: t('tbClose'),
@@ -364,20 +378,116 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
-	 * 切换桌面置顶
+	 * 循环切换窗口形态 (Float -> Pin -> Dock -> Float)
 	 */
-	private togglePin() {
-		this.isPinned = !this.isPinned;
-		setWindowTopmost(this.targetWin, this.isPinned);
+	private async cycleWindowMode() {
+		const nextModeMap: Record<WindowMode, WindowMode> = {
+			float: 'pin',
+			pin: 'dock',
+			dock: 'float',
+		};
 
-		if (this.isPinned) {
-			this.pinBtnEl.addClass('is-active');
-		} else {
-			this.pinBtnEl.removeClass('is-active');
+		const nextMode = nextModeMap[this.currentMode];
+		this.applyWindowMode(nextMode, true);
+		await this.persistFrontmatter({
+			mode: nextMode,
+			pinned: nextMode === 'pin',
+		});
+	}
+
+	/**
+	 * 应用窗口模式样式、层级与图标
+	 */
+	public applyWindowMode(mode: WindowMode, showNotice = false) {
+		this.currentMode = mode;
+		const targetWin = this.targetWin;
+
+		switch (mode) {
+			case 'float':
+				setWindowTopmost(targetWin, false);
+				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
+				this.containerEl.removeClass('is-docked');
+				if (showNotice) new Notice(t('noticeFloat'), 1500);
+				break;
+
+			case 'pin':
+				setWindowTopmost(targetWin, true);
+				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
+				this.containerEl.removeClass('is-docked');
+				if (showNotice) new Notice(t('noticePinned'), 1500);
+				break;
+
+			case 'dock':
+				setWindowTopmost(targetWin, false);
+				setWindowSkipTaskbar(targetWin, true);
+				this.containerEl.addClass('is-docked');
+				if (showNotice) new Notice(t('noticeDocked'), 1500);
+				break;
 		}
 
-		void this.persistFrontmatter({ pinned: this.isPinned });
-		new Notice(this.isPinned ? t('noticePinned') : t('noticeUnpinned'), 1500);
+		this.updatePinButtonUI();
+	}
+
+	/**
+	 * 更新 Pin/Dock 按钮的外观、图标与 Tooltip
+	 */
+	private updatePinButtonUI() {
+		if (!this.pinBtnEl) return;
+
+		switch (this.currentMode) {
+			case 'float':
+				this.pinBtnEl.removeClass('is-active');
+				setIcon(this.pinBtnEl, 'pin');
+				this.pinBtnEl.setAttribute('title', t('modeFloatTooltip'));
+				break;
+			case 'pin':
+				this.pinBtnEl.addClass('is-active');
+				setIcon(this.pinBtnEl, 'pin');
+				this.pinBtnEl.setAttribute('title', t('modePinTooltip'));
+				break;
+			case 'dock':
+				this.pinBtnEl.addClass('is-active');
+				setIcon(this.pinBtnEl, 'anchor');
+				this.pinBtnEl.setAttribute('title', t('modeDockTooltip'));
+				break;
+		}
+	}
+
+	/**
+	 * 恢复为 Obsidian 主窗口普通笔记视窗 (收回收纳至主库)
+	 */
+	private async restoreToMainWindow() {
+		const file = this.file;
+		const app = this.plugin.app;
+
+		// 1. 立即触发视图安全落盘
+		await this.view.save();
+
+		// 2. 提前获取主窗口引用与通知提示
+		const openerWin = (window.opener as Window | null) ?? null;
+		const mainWin = (app.workspace as { containerWin?: Window }).containerWin ?? openerWin ?? window;
+		new Notice(t('noticeRestoredToMain'));
+
+		// 3. 安全清理工具栏并销毁当前独立便笺小窗
+		this.destroy();
+		this.view.leaf.detach();
+
+		// 4. 检查主窗口根工作区是否已打开此笔记，避免重复开启多余 Tab
+		const rootSplit = app.workspace.rootSplit;
+		let targetLeaf = app.workspace.getLeavesOfType('markdown').find(
+			(l) => l.view instanceof MarkdownView && l.view.file?.path === file.path && l.getContainer() === rootSplit,
+		);
+
+		if (!targetLeaf) {
+			targetLeaf = app.workspace.getLeaf('tab');
+			await targetLeaf.openFile(file, { state: { mode: 'source' } });
+		}
+
+		// 5. 激活目标 Leaf 并确保主窗口置前激活
+		app.workspace.setActiveLeaf(targetLeaf, { focus: true });
+		if (mainWin && typeof mainWin.focus === 'function') {
+			mainWin.focus();
+		}
 	}
 
 	/**

@@ -5,6 +5,8 @@
 interface ElectronWindow {
 	setAlwaysOnTop(this: void, flag: boolean, level?: string): void;
 	setSkipTaskbar?(this: void, skip: boolean): void;
+	getBounds?(this: void): { x: number; y: number; width: number; height: number };
+	setPosition?(this: void, x: number, y: number, animate?: boolean): void;
 }
 
 interface ElectronRemote {
@@ -87,4 +89,55 @@ export function setWindowSkipTaskbar(targetWindow: Window, skip = true): boolean
 		}
 	}
 	return false;
+}
+
+export interface WindowBoundsInfo {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+/**
+ * 获取便笺窗口在屏幕上的精准物理几何坐标
+ */
+export function getCurrentWindowBounds(targetWindow: Window): WindowBoundsInfo {
+	const bw = getTargetBrowserWindow(targetWindow);
+	if (bw && typeof bw.getBounds === 'function') {
+		try {
+			const b = bw.getBounds();
+			if (b && typeof b.width === 'number') {
+				return { x: b.x, y: b.y, width: b.width, height: b.height };
+			}
+		} catch {
+			// 回退到 DOM 坐标
+		}
+	}
+	return {
+		x: targetWindow.screenX,
+		y: targetWindow.screenY,
+		width: targetWindow.outerWidth,
+		height: targetWindow.outerHeight,
+	};
+}
+
+/**
+ * 移动便笺窗口至指定屏幕坐标
+ */
+export function setWindowPosition(targetWindow: Window, x: number, y: number): boolean {
+	const bw = getTargetBrowserWindow(targetWindow);
+	if (bw && typeof bw.setPosition === 'function') {
+		try {
+			bw.setPosition(Math.round(x), Math.round(y));
+			return true;
+		} catch (e) {
+			console.debug('[DesktopStickyNotes] setPosition failed:', e);
+		}
+	}
+	try {
+		targetWindow.moveTo(Math.round(x), Math.round(y));
+		return true;
+	} catch {
+		return false;
+	}
 }

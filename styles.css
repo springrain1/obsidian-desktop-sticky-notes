@@ -102,7 +102,13 @@
 	background-color: rgba(211, 47, 47, 0.14) !important;
 }
 
-/* 删除按钮与关闭按钮 hover 效果 */
+/* 恢复为主窗口按钮、删除按钮与关闭按钮 hover 效果 */
+.sticky-action-restore:hover {
+	background-color: rgba(2, 136, 209, 0.15) !important;
+	color: #0288D1 !important;
+	opacity: 1;
+}
+
 .sticky-action-delete:hover {
 	background-color: rgba(229, 57, 53, 0.15) !important;
 	color: #E53935 !important;
@@ -140,6 +146,11 @@
 .evernote-sticky-card.hide-sticky-yaml .metadata-properties,
 .evernote-sticky-card.hide-sticky-yaml .cm-line:has(.cm-hmd-frontmatter) {
 	display: none !important;
+}
+
+/* 桌面停靠态：消除扩散大阴影，平整贴合桌面 */
+.evernote-sticky-card.is-docked {
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--sticky-border-color) !important;
 }
 
 /* 调色板浮层面板 */
