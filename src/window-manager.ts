@@ -6,16 +6,24 @@ import {
 	MarkdownView,
 } from 'obsidian';
 import { StickyNoteMeta } from './types';
-import type EvernoteStickyPlugin from './main';
-import { EvernoteStickyToolbar } from './toolbar';
+import type DesktopStickyNotesPlugin from './main';
+import { DesktopStickyToolbar } from './toolbar';
+import { StickyNotesHubModal } from './hub-modal';
 
 export class StickyWindowManager {
 	private app: App;
-	private plugin: EvernoteStickyPlugin;
+	private plugin: DesktopStickyNotesPlugin;
 
-	constructor(plugin: EvernoteStickyPlugin) {
+	constructor(plugin: DesktopStickyNotesPlugin) {
 		this.plugin = plugin;
 		this.app = plugin.app;
+	}
+
+	/**
+	 * 打开便签列表管理器 (Sticky Notes Hub)
+	 */
+	public openStickyNotesHub() {
+		new StickyNotesHubModal(this.app, this.plugin).open();
 	}
 
 	/**
@@ -50,9 +58,25 @@ export class StickyWindowManager {
 			await this.openStickyNote(file);
 			return file;
 		} catch (e) {
-			console.error('[EvernoteStickyNote] Create sticky note failed:', e);
+			console.error('[DesktopStickyNotes] Create sticky note failed:', e);
 			return null;
 		}
+	}
+
+	/**
+	 * 屏幕安全区域坐标计算 (防止多显示器断开后漂出屏幕)
+	 */
+	private clampBoundsToScreen(bounds: { x?: number; y?: number; width?: number; height?: number }): { width: number; height: number } {
+		const availW = window.screen.availWidth || 1920;
+		const availH = window.screen.availHeight || 1080;
+
+		let width = bounds.width || this.plugin.settings.defaultWidth;
+		let height = bounds.height || this.plugin.settings.defaultHeight;
+
+		width = Math.max(220, Math.min(width, availW));
+		height = Math.max(200, Math.min(height, availH));
+
+		return { width, height };
 	}
 
 	/**
@@ -72,18 +96,14 @@ export class StickyWindowManager {
 			}
 		}
 
-		// 2. 读取该文件前置参数（若已有 bounds 记录，则使用记录的宽高）
+		// 2. 读取该文件前置参数并进行屏幕安全夹取 (Screen Clamping)
 		const cache = this.app.metadataCache.getFileCache(file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
-		const initialWidth = fm.bounds?.width || this.plugin.settings.defaultWidth;
-		const initialHeight = fm.bounds?.height || this.plugin.settings.defaultHeight;
+		const safeSize = this.clampBoundsToScreen(fm.bounds || {});
 
 		// 3. 打开独立 Popout 窗口
 		const leaf = this.app.workspace.openPopoutLeaf({
-			size: {
-				width: initialWidth,
-				height: initialHeight,
-			},
+			size: safeSize,
 		});
 
 		// 4. 以 Markdown 实时预览模式打开该文件
@@ -141,8 +161,8 @@ export class StickyWindowManager {
 				oldToolbar.remove();
 			}
 
-			// 创建并挂载顶部印象笔记富文本工具栏
-			new EvernoteStickyToolbar(
+			// 创建并挂载顶部桌面便笺富文本工具栏
+			new DesktopStickyToolbar(
 				this.plugin,
 				view,
 				file,

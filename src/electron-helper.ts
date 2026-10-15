@@ -36,7 +36,7 @@ export function setWindowTopmost(targetWindow: Window, isPinned: boolean): boole
 			}
 		}
 	} catch (e) {
-		console.warn('[EvernoteStickyNote] setAlwaysOnTop failed or unsupported:', e);
+		console.warn('[DesktopStickyNotes] setAlwaysOnTop failed or unsupported:', e);
 	}
 	return false;
 }

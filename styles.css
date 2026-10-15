@@ -1,4 +1,4 @@
-/* 印象笔记桌面便签 (Evernote Sticky Note) 拟物风格与 Live Preview 适配样式 */
+/* 桌面便笺 (Desktop Sticky Notes) 拟物风格与 Live Preview 适配样式 */
 
 /* 便签卡片容器 */
 .evernote-sticky-card {
@@ -102,7 +102,13 @@
 	background-color: rgba(211, 47, 47, 0.14) !important;
 }
 
-/* 关闭按钮 hover 效果 */
+/* 删除按钮与关闭按钮 hover 效果 */
+.sticky-action-delete:hover {
+	background-color: rgba(229, 57, 53, 0.15) !important;
+	color: #E53935 !important;
+	opacity: 1;
+}
+
 .sticky-action-close:hover {
 	background-color: #E53935 !important;
 	color: #FFFFFF !important;
@@ -208,19 +214,35 @@ body.is-evernote-sticky-window .view-content {
 	background-color: var(--sticky-bg-color) !important;
 }
 
-/* ================= CodeMirror 6 (Live Preview) 便签主题穿透 ================= */
+/* ================= CodeMirror 6 (Live Preview) 便签主题穿透与紧凑间距消除 ================= */
 .is-evernote-sticky-window .markdown-source-view.mod-cm6,
 .is-evernote-sticky-window .cm-editor,
 .is-evernote-sticky-window .cm-scroller {
 	background-color: var(--sticky-bg-color) !important;
 	color: var(--sticky-text-color) !important;
 	font-family: inherit !important;
+	padding-top: 0 !important;
+	margin-top: 0 !important;
+}
+
+/* 彻底消除正文距顶部工具栏过大的空白间距 */
+.is-evernote-sticky-window .cm-sizer,
+.is-evernote-sticky-window .markdown-source-view.mod-cm6.is-readable-line-width .cm-sizer,
+.is-evernote-sticky-window .markdown-source-view.mod-cm6 .cm-sizer {
+	padding-top: 4px !important;
+	margin-top: 0 !important;
+	min-height: auto !important;
 }
 
 .is-evernote-sticky-window .cm-content {
-	padding: 10px 14px 20px 14px !important;
+	padding: 4px 12px 20px 12px !important;
 	font-size: 14px !important;
-	line-height: 1.6 !important;
+	line-height: 1.55 !important;
+}
+
+.is-evernote-sticky-window .cm-line:first-child {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
 }
 
 /* 光标与选区颜色匹配 */
@@ -246,4 +268,154 @@ body.is-evernote-sticky-window .view-content {
 .is-evernote-sticky-window .cm-scroller::-webkit-scrollbar-thumb {
 	background-color: rgba(0, 0, 0, 0.15);
 	border-radius: 3px;
+}
+
+/* ================= 便签列表管理器 (Sticky Notes Hub) 样式 ================= */
+.sticky-hub-modal {
+	width: 720px !important;
+	max-width: 90vw !important;
+	height: 560px !important;
+	max-height: 85vh !important;
+	border-radius: 12px !important;
+	padding: 20px 24px !important;
+	display: flex;
+	flex-direction: column;
+}
+
+.sticky-hub-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 14px;
+}
+
+.sticky-hub-title {
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.sticky-hub-new-btn {
+	padding: 5px 14px;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.sticky-hub-search-wrapper {
+	margin-bottom: 16px;
+}
+
+.sticky-hub-search-input {
+	width: 100%;
+	padding: 8px 12px;
+	border-radius: 8px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	font-size: 14px;
+}
+
+.sticky-hub-cards-container {
+	flex: 1;
+	overflow-y: auto;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 14px;
+	padding: 4px 2px;
+}
+
+.sticky-hub-card {
+	--card-bg-color: #FFF8B8;
+	--card-border-color: #E8DC84;
+	--card-header-color: #F9EE9B;
+	--card-text-color: #222222;
+
+	background-color: var(--card-bg-color);
+	border: 1px solid var(--card-border-color);
+	color: var(--card-text-color);
+	border-radius: 8px;
+	padding: 10px 12px;
+	height: 140px;
+	display: flex;
+	flex-direction: column;
+	cursor: pointer;
+	position: relative;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sticky-hub-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.sticky-hub-card-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 11px;
+	opacity: 0.65;
+	margin-bottom: 6px;
+}
+
+.sticky-hub-card-pin svg {
+	width: 13px;
+	height: 13px;
+	color: #D32F2F;
+}
+
+.sticky-hub-card-title {
+	font-weight: 600;
+	font-size: 13px;
+	margin-bottom: 4px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sticky-hub-card-snippet {
+	font-size: 12px;
+	line-height: 1.4;
+	opacity: 0.85;
+	flex: 1;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	word-break: break-word;
+}
+
+.sticky-hub-card-delete {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	width: 22px;
+	height: 22px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	opacity: 0;
+	transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.sticky-hub-card:hover .sticky-hub-card-delete {
+	opacity: 0.7;
+}
+
+.sticky-hub-card-delete:hover {
+	opacity: 1 !important;
+	background-color: rgba(229, 57, 53, 0.2);
+	color: #E53935;
+}
+
+.sticky-hub-card-delete svg {
+	width: 13px;
+	height: 13px;
+}
+
+.sticky-hub-empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 40px;
+	opacity: 0.5;
+	font-size: 14px;
 }

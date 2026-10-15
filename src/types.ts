@@ -58,6 +58,14 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		header: '#F2F2F2',
 		text: '#2A2A2A',
 	},
+	charcoal: {
+		id: 'charcoal',
+		name: 'Charcoal Dark',
+		bg: '#202020',
+		border: '#383838',
+		header: '#2B2B2B',
+		text: '#E2E8F0',
+	},
 };
 
 export function getStickyColorName(colorId: string): string {
@@ -68,6 +76,7 @@ export function getStickyColorName(colorId: string): string {
 		case 'blue': return t('colorBlue');
 		case 'purple': return t('colorPurple');
 		case 'white': return t('colorWhite');
+		case 'charcoal': return t('colorCharcoal');
 		default: return colorId;
 	}
 }

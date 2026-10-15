@@ -3,11 +3,11 @@ import {
 	DEFAULT_SETTINGS,
 	StickyPluginSettings,
 } from './types';
-import { EvernoteStickySettingTab } from './settings';
+import { DesktopStickySettingTab } from './settings';
 import { StickyWindowManager } from './window-manager';
 import { t } from './i18n';
 
-export default class EvernoteStickyPlugin extends Plugin {
+export default class DesktopStickyNotesPlugin extends Plugin {
 	settings!: StickyPluginSettings;
 	windowManager!: StickyWindowManager;
 
@@ -16,12 +16,17 @@ export default class EvernoteStickyPlugin extends Plugin {
 
 		this.windowManager = new StickyWindowManager(this);
 
-		// 1. 左侧 Ribbon 快捷图标：新建印象桌面便签
+		// 1. 左侧 Ribbon 快捷图标：新建便笺
 		this.addRibbonIcon('sticky-note', t('ribbonTitle'), () => {
 			void this.windowManager.createNewStickyNote();
 		});
 
-		// 2. 注册命令：新建桌面便签
+		// 2. 左侧 Ribbon 快捷图标：打开便笺管理器 (Notes Hub)
+		this.addRibbonIcon('layout-grid', t('ribbonHubTitle'), () => {
+			this.windowManager.openStickyNotesHub();
+		});
+
+		// 3. 注册命令：新建桌面便笺
 		this.addCommand({
 			id: 'create-new-sticky-note',
 			name: t('cmdNewSticky'),
@@ -30,7 +35,16 @@ export default class EvernoteStickyPlugin extends Plugin {
 			},
 		});
 
-		// 3. 注册命令：将当前活动笔记以桌面便签打开
+		// 4. 注册命令：打开桌面便笺管理器 (Notes Hub)
+		this.addCommand({
+			id: 'open-sticky-notes-hub',
+			name: t('cmdOpenHub'),
+			callback: () => {
+				this.windowManager.openStickyNotesHub();
+			},
+		});
+
+		// 5. 注册命令：将当前活动笔记以桌面便笺打开
 		this.addCommand({
 			id: 'open-current-as-sticky-note',
 			name: t('cmdOpenCurrent'),
@@ -46,7 +60,7 @@ export default class EvernoteStickyPlugin extends Plugin {
 			},
 		});
 
-		// 4. 注册文件上下文菜单：右键笔记直接以桌面便签打开
+		// 6. 注册文件上下文菜单：右键笔记直接以桌面便笺打开
 		this.registerEvent(
 			this.app.workspace.on('file-menu', (menu, file) => {
 				if (file instanceof TFile && file.extension === 'md') {
@@ -61,12 +75,12 @@ export default class EvernoteStickyPlugin extends Plugin {
 			}),
 		);
 
-		// 5. 注册设置面板
-		this.addSettingTab(new EvernoteStickySettingTab(this.app, this));
+		// 7. 注册设置面板
+		this.addSettingTab(new DesktopStickySettingTab(this.app, this));
 	}
 
 	onunload() {
-		// 移除便签独立窗口的自定义样式标记
+		// 移除便笺独立窗口的自定义样式标记
 		for (const leaf of this.app.workspace.getLeavesOfType('markdown')) {
 			const targetWin = leaf.view.containerEl.ownerDocument.defaultView;
 			targetWin?.document.body.classList.remove('is-evernote-sticky-window');

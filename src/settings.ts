@@ -1,12 +1,12 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import type EvernoteStickyPlugin from './main';
+import type DesktopStickyNotesPlugin from './main';
 import { STICKY_COLORS, getStickyColorName } from './types';
 import { t } from './i18n';
 
-export class EvernoteStickySettingTab extends PluginSettingTab {
-	plugin: EvernoteStickyPlugin;
+export class DesktopStickySettingTab extends PluginSettingTab {
+	plugin: DesktopStickyNotesPlugin;
 
-	constructor(app: App, plugin: EvernoteStickyPlugin) {
+	constructor(app: App, plugin: DesktopStickyNotesPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

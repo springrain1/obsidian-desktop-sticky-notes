@@ -8,10 +8,10 @@ import {
 import { STICKY_COLORS, StickyNoteMeta, getStickyColorName } from './types';
 import { setWindowTopmost } from './electron-helper';
 import { t } from './i18n';
-import type EvernoteStickyPlugin from './main';
+import type DesktopStickyNotesPlugin from './main';
 
-export class EvernoteStickyToolbar {
-	private plugin: EvernoteStickyPlugin;
+export class DesktopStickyToolbar {
+	private plugin: DesktopStickyNotesPlugin;
 	private view: MarkdownView;
 	private file: TFile;
 	private targetWin: Window;
@@ -28,7 +28,7 @@ export class EvernoteStickyToolbar {
 	private currentColor = 'yellow';
 
 	constructor(
-		plugin: EvernoteStickyPlugin,
+		plugin: DesktopStickyNotesPlugin,
 		view: MarkdownView,
 		file: TFile,
 		targetWin: Window,
@@ -182,8 +182,23 @@ export class EvernoteStickyToolbar {
 			this.toggleYaml();
 		};
 
-		// 右侧关闭按钮
+		// 右侧操作组：删除便签、关闭便签
 		const rightGroup = this.toolbarEl.createDiv({ cls: 'sticky-toolbar-group right' });
+
+		// 11. 删除便签（移入废纸篓）
+		const delBtn = rightGroup.createDiv({
+			cls: 'sticky-action-btn sticky-action-delete',
+			title: t('tbDelete'),
+		});
+		setIcon(delBtn, 'trash-2');
+		delBtn.onclick = async () => {
+			this.destroy();
+			this.view.leaf.detach();
+			await this.plugin.app.fileManager.trashFile(this.file);
+			new Notice(t('noticeDeleted'));
+		};
+
+		// 12. 关闭便签
 		const closeBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-close',
 			title: t('tbClose'),
@@ -509,7 +524,7 @@ export class EvernoteStickyToolbar {
 				editor.focus();
 				new Notice(t('noticeImgSuccess'));
 			} catch (err) {
-				console.error('[EvernoteStickyNote] Failed to insert image from file dialog:', err);
+				console.error('[DesktopStickyNotes] Failed to insert image from file dialog:', err);
 				new Notice(t('noticeImgFail'));
 			}
 		};

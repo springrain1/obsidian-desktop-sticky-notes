@@ -8,15 +8,17 @@ export type Locale = 'zh' | 'en';
 
 const zh = {
 	// Ribbon & 命令
-	ribbonTitle: '新建印象桌面便签',
-	cmdNewSticky: '新建桌面便签',
-	cmdOpenCurrent: '将当前笔记以桌面便签打开',
-	menuOpenAsSticky: '以桌面便签打开',
+	ribbonTitle: '新建桌面便笺',
+	ribbonHubTitle: '打开桌面便笺管理器',
+	cmdNewSticky: '新建桌面便笺',
+	cmdOpenCurrent: '将当前笔记以桌面便笺打开',
+	cmdOpenHub: '打开桌面便笺管理器',
+	menuOpenAsSticky: '以桌面便笺打开',
 
 	// 工具栏 Tooltip
-	tbNew: '新建便签 (Ctrl+Alt+S)',
-	tbPin: '置顶便签 / 取消置顶',
-	tbSkin: '更改便签皮肤',
+	tbNew: '新建便笺 (Ctrl+Alt+S)',
+	tbPin: '置顶便笺 / 取消置顶',
+	tbSkin: '更改便笺皮肤',
 	tbTodo: '待办事项 (支持单行或多行选中批量切换)',
 	tbBullet: '项目符号列表 (支持多选批量转换)',
 	tbNumber: '编号列表 (支持多选自动递增编号)',
@@ -24,17 +26,26 @@ const zh = {
 	tbImage: '从资源管理器选择图片插入 (或直接 Ctrl+V 粘贴)',
 	tbTitle: '显示/隐藏笔记标题',
 	tbYaml: '显示/隐藏元数据 (YAML)',
-	tbClose: '关闭便签',
+	tbDelete: '移入废纸篓 (删除便笺)',
+	tbClose: '关闭便笺 (随时可在管理器找回)',
 
 	// 通知 Notice
-	noticePinned: '便签已置顶',
-	noticeUnpinned: '便签已取消置顶',
+	noticePinned: '便笺已置顶',
+	noticeUnpinned: '便笺已取消置顶',
 	noticeTitleShow: '已显示笔记标题',
 	noticeTitleHide: '已隐藏笔记标题',
 	noticeYamlShow: '已显示元数据 (YAML)',
 	noticeYamlHide: '已隐藏元数据 (YAML)',
 	noticeImgSuccess: '图片已成功插入',
 	noticeImgFail: '插入图片失败，请重试',
+	noticeDeleted: '便笺已安全移入废纸篓',
+
+	// 便笺管理器 Hub
+	hubTitle: '桌面便笺管理器',
+	hubSearchPlaceholder: '搜索便笺内容或标题...',
+	hubNoNotes: '未找到便笺',
+	hubNewBtn: '新建便笺',
+	hubConfirmDelete: '确定将此便笺移入废纸篓吗？',
 
 	// 颜色名称
 	colorYellow: '经典黄',
@@ -43,31 +54,34 @@ const zh = {
 	colorBlue: '晴空蓝',
 	colorPurple: '香芋紫',
 	colorWhite: '简约白',
+	colorCharcoal: '暗夜碳黑',
 
 	// 设置面板
 	settingHeading: '常规设置',
-	settingFolder: '便签保存目录',
-	settingFolderDesc: '新建便签时默认保存的 Vault 文件夹路径',
-	settingDefaultColor: '新建便签默认配色',
-	settingDefaultColorDesc: '新创建便签时的初始便签纸皮肤',
+	settingFolder: '便笺保存目录',
+	settingFolderDesc: '新建便笺时默认保存的 Vault 文件夹路径',
+	settingDefaultColor: '新建便笺默认配色',
+	settingDefaultColorDesc: '新创建便笺时的初始便笺纸皮肤',
 	settingWidth: '默认宽度 (px)',
-	settingWidthDesc: '桌面便签弹出时的默认初始宽度',
+	settingWidthDesc: '桌面便笺弹出时的默认初始宽度',
 	settingHeight: '默认高度 (px)',
-	settingHeightDesc: '桌面便签弹出时的默认初始高度',
+	settingHeightDesc: '桌面便笺弹出时的默认初始高度',
 	settingPinned: '默认窗口置顶',
-	settingPinnedDesc: '新建便签时是否默认保持在桌面最前',
-	settingAutoHideToolbar: '鼠标离开便签时自动隐藏工具栏',
-	settingAutoHideToolbarDesc: '鼠标移入便签窗口时平滑显示工具栏，移出时自动隐藏，还原印象笔记极简便签体验',
+	settingPinnedDesc: '新建便笺时是否默认保持在桌面最前',
+	settingAutoHideToolbar: '鼠标离开便笺时自动隐藏工具栏',
+	settingAutoHideToolbarDesc: '鼠标移入便笺窗口时平滑显示工具栏，移出时自动隐藏，提供极致清爽的便笺纸体验',
 	settingDelay: '自动存盘延迟 (毫秒)',
 	settingDelayDesc: '编辑停止后自动保存到 Markdown 文件的防抖延迟',
 };
 
 const en: typeof zh = {
 	// Ribbon & Commands
-	ribbonTitle: 'New Evernote sticky note',
-	cmdNewSticky: 'New sticky note',
-	cmdOpenCurrent: 'Open current note as sticky note',
-	menuOpenAsSticky: 'Open as sticky note',
+	ribbonTitle: 'New desktop sticky note',
+	ribbonHubTitle: 'Open desktop sticky notes hub',
+	cmdNewSticky: 'New desktop sticky note',
+	cmdOpenCurrent: 'Open current note as desktop sticky note',
+	cmdOpenHub: 'Open desktop sticky notes hub',
+	menuOpenAsSticky: 'Open as desktop sticky note',
 
 	// Toolbar Tooltips
 	tbNew: 'New sticky note (Ctrl+Alt+S)',
@@ -80,7 +94,8 @@ const en: typeof zh = {
 	tbImage: 'Insert image from file explorer (or Ctrl+V to paste)',
 	tbTitle: 'Show/hide note title',
 	tbYaml: 'Show/hide metadata (YAML)',
-	tbClose: 'Close sticky note',
+	tbDelete: 'Move to trash (Delete note)',
+	tbClose: 'Close sticky note (Retrievable from Hub)',
 
 	// Notices
 	noticePinned: 'Sticky note pinned',
@@ -91,6 +106,14 @@ const en: typeof zh = {
 	noticeYamlHide: 'Metadata (YAML) hidden',
 	noticeImgSuccess: 'Image inserted successfully',
 	noticeImgFail: 'Failed to insert image, please retry',
+	noticeDeleted: 'Sticky note moved to trash',
+
+	// Notes Hub
+	hubTitle: 'Desktop Sticky Notes Hub',
+	hubSearchPlaceholder: 'Search sticky notes by title or content...',
+	hubNoNotes: 'No sticky notes found',
+	hubNewBtn: 'New note',
+	hubConfirmDelete: 'Are you sure you want to move this note to trash?',
 
 	// Color Names
 	colorYellow: 'Classic Yellow',
@@ -99,6 +122,7 @@ const en: typeof zh = {
 	colorBlue: 'Sky Blue',
 	colorPurple: 'Taro Purple',
 	colorWhite: 'Minimal White',
+	colorCharcoal: 'Charcoal Dark',
 
 	// Settings Tab
 	settingHeading: 'General settings',
@@ -113,7 +137,7 @@ const en: typeof zh = {
 	settingPinned: 'Default window pinned',
 	settingPinnedDesc: 'Whether sticky notes stay on top by default',
 	settingAutoHideToolbar: 'Auto-hide toolbar when cursor leaves',
-	settingAutoHideToolbarDesc: 'Smoothly show toolbar on hover and auto-hide when mouse leaves, reproducing the classic Evernote sticky note experience',
+	settingAutoHideToolbarDesc: 'Smoothly show toolbar on hover and auto-hide when mouse leaves for a distraction-free experience',
 	settingDelay: 'Auto-save delay (ms)',
 	settingDelayDesc: 'Debounce delay before auto-saving to Markdown file',
 };

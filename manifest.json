@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-evernote-stickynote",
-	"name": "Evernote Sticky Note",
+	"id": "desktop-sticky-notes",
+	"name": "Desktop Sticky Notes",
 	"version": "1.0.0",
 	"minAppVersion": "1.8.7",
-	"description": "Evernote-style desktop sticky note with rich text editor fully compatible with Obsidian Markdown.",
+	"description": "Beautiful, always-on-top desktop sticky notes with Live Preview, rich-text toolbar, 7 paper skins, and notes hub for Obsidian.",
 	"author": "springrain",
 	"isDesktopOnly": true
 }
