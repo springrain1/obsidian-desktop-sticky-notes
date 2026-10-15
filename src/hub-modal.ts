@@ -1,6 +1,7 @@
 import { App, Modal, TFile, setIcon, Notice } from 'obsidian';
 import type DesktopStickyNotesPlugin from './main';
-import { STICKY_COLORS, StickyNoteMeta } from './types';
+import { STICKY_COLORS, StickyNoteMeta, StickyColorInfo } from './types';
+import { ConfirmModal } from './confirm-modal';
 import { t } from './i18n';
 
 interface NoteItemData {
@@ -104,7 +105,7 @@ export class StickyNotesHubModal extends Modal {
 			this.allNotes.push({
 				file,
 				title: file.basename,
-				snippet: snippet || '(空白便签)',
+				snippet: snippet || '(空白便笺)',
 				color: fm.color || this.plugin.settings.defaultColor,
 				pinned: fm.pinned ?? false,
 				updatedAt: file.stat.mtime,
@@ -132,9 +133,10 @@ export class StickyNotesHubModal extends Modal {
 			return;
 		}
 
+		const fallbackColor = STICKY_COLORS.yellow as StickyColorInfo;
+
 		for (const note of filtered) {
-			const colorInfo = STICKY_COLORS[note.color] || STICKY_COLORS.yellow;
-			if (!colorInfo) continue;
+			const colorInfo = STICKY_COLORS[note.color] ?? fallbackColor;
 
 			const card = this.cardsContainer.createDiv({ cls: 'sticky-hub-card' });
 			card.style.setProperty('--card-bg-color', colorInfo.bg);
@@ -170,18 +172,22 @@ export class StickyNotesHubModal extends Modal {
 				await this.plugin.windowManager.openStickyNote(note.file);
 			};
 
-			// 删除按钮
+			// 删除按钮（带优雅确认对话框）
 			const delBtn = card.createDiv({
 				cls: 'sticky-hub-card-delete',
 				title: t('tbDelete'),
 			});
 			setIcon(delBtn, 'trash-2');
-			delBtn.onclick = async (e) => {
+			delBtn.onclick = (e) => {
 				e.stopPropagation();
-				await this.app.fileManager.trashFile(note.file);
-				new Notice(t('noticeDeleted'));
-				this.allNotes = this.allNotes.filter((n) => n.file.path !== note.file.path);
-				this.renderCards();
+				new ConfirmModal(this.app, t('hubConfirmDelete'), () => {
+					void (async () => {
+						await this.app.fileManager.trashFile(note.file);
+						new Notice(t('noticeDeleted'));
+						this.allNotes = this.allNotes.filter((n) => n.file.path !== note.file.path);
+						this.renderCards();
+					})();
+				}).open();
 			};
 		}
 	}

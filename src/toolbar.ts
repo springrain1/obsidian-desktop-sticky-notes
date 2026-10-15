@@ -5,8 +5,9 @@ import {
 	Notice,
 	Editor,
 } from 'obsidian';
-import { STICKY_COLORS, StickyNoteMeta, getStickyColorName } from './types';
+import { STICKY_COLORS, StickyNoteMeta, getStickyColorName, StickyColorInfo } from './types';
 import { setWindowTopmost } from './electron-helper';
+import { ConfirmModal } from './confirm-modal';
 import { t } from './i18n';
 import type DesktopStickyNotesPlugin from './main';
 
@@ -75,10 +76,10 @@ export class DesktopStickyToolbar {
 			cls: 'evernote-sticky-toolbar',
 		});
 
-		// 左侧组：新建便签、置顶、换肤
+		// 左侧组：新建便笺、置顶、换肤
 		const leftGroup = this.toolbarEl.createDiv({ cls: 'sticky-toolbar-group left' });
 
-		// 1. 新建便签
+		// 1. 新建便笺
 		const newBtn = leftGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-new',
 			title: t('tbNew'),
@@ -182,23 +183,27 @@ export class DesktopStickyToolbar {
 			this.toggleYaml();
 		};
 
-		// 右侧操作组：删除便签、关闭便签
+		// 右侧操作组：删除便笺、关闭便笺
 		const rightGroup = this.toolbarEl.createDiv({ cls: 'sticky-toolbar-group right' });
 
-		// 11. 删除便签（移入废纸篓）
+		// 11. 删除便笺（移入废纸篓，带确认对话框防误触）
 		const delBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-delete',
 			title: t('tbDelete'),
 		});
 		setIcon(delBtn, 'trash-2');
-		delBtn.onclick = async () => {
-			this.destroy();
-			this.view.leaf.detach();
-			await this.plugin.app.fileManager.trashFile(this.file);
-			new Notice(t('noticeDeleted'));
+		delBtn.onclick = () => {
+			new ConfirmModal(this.plugin.app, t('hubConfirmDelete'), () => {
+				void (async () => {
+					this.destroy();
+					this.view.leaf.detach();
+					await this.plugin.app.fileManager.trashFile(this.file);
+					new Notice(t('noticeDeleted'));
+				})();
+			}).open();
 		};
 
-		// 12. 关闭便签
+		// 12. 关闭便笺
 		const closeBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-close',
 			title: t('tbClose'),
@@ -235,7 +240,6 @@ export class DesktopStickyToolbar {
 		const endLine = to.line;
 		const isSingleCursor = startLine === endLine && from.ch === to.ch;
 
-		// 获取所选区间内的所有行内容
 		const lines: string[] = [];
 		for (let l = startLine; l <= endLine; l++) {
 			lines.push(editor.getLine(l));
@@ -434,26 +438,27 @@ export class DesktopStickyToolbar {
 			cls: 'sticky-skin-popover',
 		});
 
+		const fallbackColor = STICKY_COLORS.yellow as StickyColorInfo;
+
 		for (const key of Object.keys(STICKY_COLORS)) {
-			const color = STICKY_COLORS[key];
-			if (!color) continue;
+			const color = STICKY_COLORS[key] ?? fallbackColor;
 			const dot = this.skinSelectorPopover.createDiv({
 				cls: 'sticky-skin-dot',
-				title: getStickyColorName(color.id),
+				title: getStickyColorName(key),
 			});
 			dot.style.backgroundColor = color.bg;
 			dot.style.borderColor = color.border;
 
-			if (this.currentColor === color.id) {
+			if (this.currentColor === key) {
 				dot.classList.add('is-current');
 			}
 
 			dot.onclick = (e) => {
 				e.stopPropagation();
-				this.currentColor = color.id;
-				this.applyColorTheme(color.id);
+				this.currentColor = key;
+				this.applyColorTheme(key);
 				this.closeSkinSelector();
-				void this.persistFrontmatter({ color: color.id });
+				void this.persistFrontmatter({ color: key });
 				this.view.editor.focus();
 			};
 		}
@@ -473,12 +478,11 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
-	 * 应用便签配色至当前容器
+	 * 应用便笺配色至当前容器
 	 */
 	public applyColorTheme(colorKey: string) {
-		const color = STICKY_COLORS[colorKey] || STICKY_COLORS.yellow;
-		if (!color) return;
-
+		const fallbackColor = STICKY_COLORS.yellow as StickyColorInfo;
+		const color = STICKY_COLORS[colorKey] ?? fallbackColor;
 		this.containerEl.style.setProperty('--sticky-bg-color', color.bg);
 		this.containerEl.style.setProperty('--sticky-border-color', color.border);
 		this.containerEl.style.setProperty('--sticky-header-color', color.header);

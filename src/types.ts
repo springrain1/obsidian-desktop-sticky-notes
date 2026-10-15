@@ -1,7 +1,6 @@
-import { t } from './i18n';
+import { t, TranslationKey } from './i18n';
 
 export interface StickyColorInfo {
-	id: string;
 	name: string;
 	bg: string;
 	border: string;
@@ -11,7 +10,6 @@ export interface StickyColorInfo {
 
 export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 	yellow: {
-		id: 'yellow',
 		name: 'Classic Yellow',
 		bg: '#FFF8B8',
 		border: '#E8DC84',
@@ -19,7 +17,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#222222',
 	},
 	green: {
-		id: 'green',
 		name: 'Mint Green',
 		bg: '#D8F3DC',
 		border: '#B7E4C7',
@@ -27,7 +24,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#1C3A27',
 	},
 	pink: {
-		id: 'pink',
 		name: 'Sakura Pink',
 		bg: '#FFE3E3',
 		border: '#F8B4B4',
@@ -35,7 +31,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#3C1E22',
 	},
 	blue: {
-		id: 'blue',
 		name: 'Sky Blue',
 		bg: '#E0F2FE',
 		border: '#BAE6FD',
@@ -43,7 +38,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#13354B',
 	},
 	purple: {
-		id: 'purple',
 		name: 'Taro Purple',
 		bg: '#F3E8FF',
 		border: '#E9D5FF',
@@ -51,7 +45,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#341D4E',
 	},
 	white: {
-		id: 'white',
 		name: 'Minimal White',
 		bg: '#FFFFFF',
 		border: '#E0E0E0',
@@ -59,7 +52,6 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 		text: '#2A2A2A',
 	},
 	charcoal: {
-		id: 'charcoal',
 		name: 'Charcoal Dark',
 		bg: '#202020',
 		border: '#383838',
@@ -68,17 +60,19 @@ export const STICKY_COLORS: Record<string, StickyColorInfo> = {
 	},
 };
 
-export function getStickyColorName(colorId: string): string {
-	switch (colorId) {
-		case 'yellow': return t('colorYellow');
-		case 'green': return t('colorGreen');
-		case 'pink': return t('colorPink');
-		case 'blue': return t('colorBlue');
-		case 'purple': return t('colorPurple');
-		case 'white': return t('colorWhite');
-		case 'charcoal': return t('colorCharcoal');
-		default: return colorId;
-	}
+const COLOR_TRANSLATION_MAP: Record<string, TranslationKey> = {
+	yellow: 'colorYellow',
+	green: 'colorGreen',
+	pink: 'colorPink',
+	blue: 'colorBlue',
+	purple: 'colorPurple',
+	white: 'colorWhite',
+	charcoal: 'colorCharcoal',
+};
+
+export function getStickyColorName(colorKey: string): string {
+	const key = COLOR_TRANSLATION_MAP[colorKey];
+	return key ? t(key) : colorKey;
 }
 
 export interface StickyNoteMeta {
@@ -86,13 +80,10 @@ export interface StickyNoteMeta {
 	pinned?: boolean;
 	color?: string;
 	bounds?: {
-		x?: number;
-		y?: number;
 		width?: number;
 		height?: number;
 	};
 	created_at?: string;
-	updated_at?: string;
 }
 
 export interface StickyPluginSettings {
@@ -101,7 +92,6 @@ export interface StickyPluginSettings {
 	defaultWidth: number;
 	defaultHeight: number;
 	defaultPinned: boolean;
-	autoSaveDelayMs: number;
 	autoHideToolbar: boolean;
 }
 
@@ -111,6 +101,5 @@ export const DEFAULT_SETTINGS: StickyPluginSettings = {
 	defaultWidth: 320,
 	defaultHeight: 380,
 	defaultPinned: false,
-	autoSaveDelayMs: 400,
 	autoHideToolbar: true,
 };

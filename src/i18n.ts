@@ -7,6 +7,9 @@ import { getLanguage } from 'obsidian';
 export type Locale = 'zh' | 'en';
 
 const zh = {
+	// 文件名前缀
+	filePrefix: '便笺',
+
 	// Ribbon & 命令
 	ribbonTitle: '新建桌面便笺',
 	ribbonHubTitle: '打开桌面便笺管理器',
@@ -16,7 +19,7 @@ const zh = {
 	menuOpenAsSticky: '以桌面便笺打开',
 
 	// 工具栏 Tooltip
-	tbNew: '新建便笺 (Ctrl+Alt+S)',
+	tbNew: '新建便笺',
 	tbPin: '置顶便笺 / 取消置顶',
 	tbSkin: '更改便笺皮肤',
 	tbTodo: '待办事项 (支持单行或多行选中批量切换)',
@@ -70,11 +73,12 @@ const zh = {
 	settingPinnedDesc: '新建便笺时是否默认保持在桌面最前',
 	settingAutoHideToolbar: '鼠标离开便笺时自动隐藏工具栏',
 	settingAutoHideToolbarDesc: '鼠标移入便笺窗口时平滑显示工具栏，移出时自动隐藏，提供极致清爽的便笺纸体验',
-	settingDelay: '自动存盘延迟 (毫秒)',
-	settingDelayDesc: '编辑停止后自动保存到 Markdown 文件的防抖延迟',
 };
 
 const en: typeof zh = {
+	// File prefix
+	filePrefix: 'Sticky',
+
 	// Ribbon & Commands
 	ribbonTitle: 'New desktop sticky note',
 	ribbonHubTitle: 'Open desktop sticky notes hub',
@@ -84,7 +88,7 @@ const en: typeof zh = {
 	menuOpenAsSticky: 'Open as desktop sticky note',
 
 	// Toolbar Tooltips
-	tbNew: 'New sticky note (Ctrl+Alt+S)',
+	tbNew: 'New sticky note',
 	tbPin: 'Pin sticky note / Unpin',
 	tbSkin: 'Change note skin',
 	tbTodo: 'Checklist (Supports multi-line toggle)',
@@ -138,8 +142,6 @@ const en: typeof zh = {
 	settingPinnedDesc: 'Whether sticky notes stay on top by default',
 	settingAutoHideToolbar: 'Auto-hide toolbar when cursor leaves',
 	settingAutoHideToolbarDesc: 'Smoothly show toolbar on hover and auto-hide when mouse leaves for a distraction-free experience',
-	settingDelay: 'Auto-save delay (ms)',
-	settingDelayDesc: 'Debounce delay before auto-saving to Markdown file',
 };
 
 export type TranslationKey = keyof typeof zh;

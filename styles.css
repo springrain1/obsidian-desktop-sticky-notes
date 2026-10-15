@@ -115,6 +115,13 @@
 	opacity: 1;
 }
 
+/* 确认弹窗微调 */
+.sticky-confirm-msg {
+	margin: 8px 0 16px 0 !important;
+	font-size: 15px;
+	line-height: 1.5;
+}
+
 /* 隐藏文件输入框与被标记隐藏的元素 */
 .sticky-hidden-file-input,
 .is-evernote-sticky-window .is-hidden {

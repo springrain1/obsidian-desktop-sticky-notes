@@ -7,6 +7,7 @@ interface ElectronWindow {
 }
 
 interface ElectronRemote {
+	getCurrentWindow?(this: void): ElectronWindow;
 	BrowserWindow?: {
 		getFocusedWindow(this: void): ElectronWindow | null;
 	};
@@ -28,10 +29,24 @@ export function setWindowTopmost(targetWindow: Window, isPinned: boolean): boole
 		if (typeof req === 'function') {
 			const electron = req('electron');
 			const remoteModule = req('@electron/remote');
-			const remote: ElectronRemote | undefined = remoteModule ?? electron.remote;
-			const focused = remote?.BrowserWindow?.getFocusedWindow() ?? electron.BrowserWindow?.getFocusedWindow();
-			if (focused) {
-				focused.setAlwaysOnTop(isPinned, 'floating');
+			const remote: ElectronRemote | undefined = remoteModule ?? electron?.remote;
+
+			// 优先获取 targetWindow 对应的原生 BrowserWindow 实例，杜绝误钉当前焦点窗口
+			let targetBw: ElectronWindow | null = null;
+			if (typeof remote?.getCurrentWindow === 'function') {
+				try {
+					targetBw = remote.getCurrentWindow();
+				} catch {
+					// 跨上下文无法直接获取时回退
+				}
+			}
+
+			if (!targetBw) {
+				targetBw = remote?.BrowserWindow?.getFocusedWindow() ?? electron?.BrowserWindow?.getFocusedWindow() ?? null;
+			}
+
+			if (targetBw) {
+				targetBw.setAlwaysOnTop(isPinned, 'floating');
 				return true;
 			}
 		}

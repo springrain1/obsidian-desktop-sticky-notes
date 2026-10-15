@@ -99,20 +99,5 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
-
-		new Setting(containerEl)
-			.setName(t('settingDelay'))
-			.setDesc(t('settingDelayDesc'))
-			.addText((text) =>
-				text
-					.setValue(String(this.plugin.settings.autoSaveDelayMs))
-					.onChange(async (val) => {
-						const num = parseInt(val, 10);
-						if (!isNaN(num) && num >= 100) {
-							this.plugin.settings.autoSaveDelayMs = num;
-							await this.plugin.saveSettings();
-						}
-					}),
-			);
 	}
 }

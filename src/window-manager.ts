@@ -9,6 +9,7 @@ import { StickyNoteMeta } from './types';
 import type DesktopStickyNotesPlugin from './main';
 import { DesktopStickyToolbar } from './toolbar';
 import { StickyNotesHubModal } from './hub-modal';
+import { t } from './i18n';
 
 export class StickyWindowManager {
 	private app: App;
@@ -20,7 +21,7 @@ export class StickyWindowManager {
 	}
 
 	/**
-	 * 打开便签列表管理器 (Sticky Notes Hub)
+	 * 打开便笺列表管理器 (Sticky Notes Hub)
 	 */
 	public openStickyNotesHub() {
 		new StickyNotesHubModal(this.app, this.plugin).open();
@@ -37,10 +38,11 @@ export class StickyWindowManager {
 			await this.app.vault.createFolder(folderPath);
 		}
 
-		// 时间戳命名
+		// 国际化命名前缀与时间戳命名
 		const now = new Date();
 		const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-		const filePath = normalizePath(`${folderPath}/便签_${dateStr}.md`);
+		const prefix = t('filePrefix');
+		const filePath = normalizePath(`${folderPath}/${prefix}_${dateStr}.md`);
 
 		const initialContent = [
 			'---',
@@ -64,9 +66,9 @@ export class StickyWindowManager {
 	}
 
 	/**
-	 * 屏幕安全区域坐标计算 (防止多显示器断开后漂出屏幕)
+	 * 屏幕安全区域尺寸计算
 	 */
-	private clampBoundsToScreen(bounds: { x?: number; y?: number; width?: number; height?: number }): { width: number; height: number } {
+	private clampBoundsToScreen(bounds: { width?: number; height?: number }): { width: number; height: number } {
 		const availW = window.screen.availWidth || 1920;
 		const availH = window.screen.availHeight || 1080;
 
@@ -111,81 +113,67 @@ export class StickyWindowManager {
 			state: { mode: 'source' },
 		});
 
-		// 5. 挂载印象笔记便签工具栏与拟物皮肤
+		// 5. 挂载桌面便笺工具栏与拟物皮肤
 		this.mountStickyFeatures(leaf, file);
 	}
 
 	/**
-	 * 挂载便签工具栏与皮肤，接管桌面独立窗口行为
+	 * 挂载便笺工具栏与皮肤，接管桌面独立窗口行为
 	 */
 	private mountStickyFeatures(leaf: WorkspaceLeaf, file: TFile) {
-		// 延时等待 Popout 窗口 DOM 就绪
-		window.setTimeout(() => {
-			const view = leaf.view;
-			if (!(view instanceof MarkdownView)) return;
+		const view = leaf.view;
+		if (!(view instanceof MarkdownView)) return;
 
-			const targetWin = view.containerEl.ownerDocument.defaultView;
-			if (!targetWin) return;
+		const targetWin = view.containerEl.ownerDocument.defaultView;
+		if (!targetWin) return;
 
-			// 给独立桌面窗口的 body 注入专属便签标记
-			targetWin.document.body.classList.add('is-evernote-sticky-window');
+		// 注入桌面便笺窗口专属样式标记（顶栏标签由 styles.css 的 display:none !important 声明式隐藏）
+		targetWin.document.body.classList.add('is-evernote-sticky-window');
+		view.containerEl.classList.add('evernote-sticky-card');
 
-			// 彻底隐藏顶部标签页头部 (Tab Header Container) 与标题栏
-			const hideTopTabHeaders = () => {
-				const headers = targetWin.document.querySelectorAll(
-					'.workspace-tab-header-container, .workspace-tab-header-container-inner, .workspace-tab-header, .titlebar, .view-header',
-				);
-				for (const h of Array.from(headers)) {
-					const el = h as HTMLElement;
-					el.addClass('is-hidden');
-				}
-			};
+		// 清理旧工具栏，防止重复注入
+		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
+		oldToolbar?.remove();
 
-			hideTopTabHeaders();
+		// 创建并挂载顶部桌面便笺富文本工具栏
+		new DesktopStickyToolbar(
+			this.plugin,
+			view,
+			file,
+			targetWin,
+			view.containerEl,
+		);
 
-			// 监听 DOM 树变动，防止 Obsidian 后续二次挂载标签栏
-			const observer = new MutationObserver(() => {
-				hideTopTabHeaders();
-			});
-			observer.observe(targetWin.document.body, {
-				childList: true,
-				subtree: true,
-			});
+		// 自动聚焦编辑器
+		view.editor.focus();
 
-			// 给视图容器注入便签卡片类
-			view.containerEl.classList.add('evernote-sticky-card');
+		// 使用 AbortController 严格管理窗口 resize 监听器生命周期，杜绝内存泄漏
+		const abortController = new AbortController();
+		let resizeTimer: number | null = null;
 
-			// 如果已存在便签工具栏，先清理避免重复注入
-			const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
-			if (oldToolbar) {
-				oldToolbar.remove();
-			}
-
-			// 创建并挂载顶部桌面便笺富文本工具栏
-			new DesktopStickyToolbar(
-				this.plugin,
-				view,
-				file,
-				targetWin,
-				view.containerEl,
-			);
-
-			// 自动聚焦编辑器第一行
-			view.editor.focus();
-
-			// 监听窗口尺寸变化，持久化记忆窗口几何位置
-			let resizeTimer: number | null = null;
-			targetWin.addEventListener('resize', () => {
+		targetWin.addEventListener(
+			'resize',
+			() => {
 				if (resizeTimer !== null) targetWin.clearTimeout(resizeTimer);
 				resizeTimer = targetWin.setTimeout(() => {
 					void this.persistWindowBounds(file, targetWin);
 				}, 800);
-			});
-		}, 80);
+			},
+			{ signal: abortController.signal },
+		);
+
+		// 当 leaf 销毁或关闭时彻底取消监听
+		targetWin.addEventListener(
+			'pagehide',
+			() => {
+				abortController.abort();
+			},
+			{ once: true },
+		);
 	}
 
 	/**
-	 * 持久化记录便签窗口宽高与坐标
+	 * 持久化记录便笺窗口实际有效消费的宽高
 	 */
 	private async persistWindowBounds(file: TFile, win: Window) {
 		try {
@@ -193,8 +181,6 @@ export class StickyWindowManager {
 				fm.bounds = {
 					width: win.innerWidth,
 					height: win.innerHeight,
-					x: win.screenX,
-					y: win.screenY,
 				};
 			});
 		} catch {
