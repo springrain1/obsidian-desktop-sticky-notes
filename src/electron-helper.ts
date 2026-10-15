@@ -99,25 +99,31 @@ export interface WindowBoundsInfo {
 }
 
 /**
- * 获取便笺窗口在屏幕上的精准物理几何坐标
+ * 获取便笺窗口在屏幕上的精准物理几何坐标与内容尺寸 (规避外边框循环膨胀漂移)
  */
 export function getCurrentWindowBounds(targetWindow: Window): WindowBoundsInfo {
+	let x = targetWindow.screenX;
+	let y = targetWindow.screenY;
+
 	const bw = getTargetBrowserWindow(targetWindow);
 	if (bw && typeof bw.getBounds === 'function') {
 		try {
 			const b = bw.getBounds();
-			if (b && typeof b.width === 'number') {
-				return { x: b.x, y: b.y, width: b.width, height: b.height };
+			if (b && typeof b.x === 'number') {
+				x = b.x;
+				y = b.y;
 			}
 		} catch {
-			// 回退到 DOM 坐标
+			// 回退
 		}
 	}
+
+	// 宽度与高度严格记录内容区域尺寸 (innerWidth/innerHeight)，与 openPopoutLeaf({size}) 期望严格一致
 	return {
-		x: targetWindow.screenX,
-		y: targetWindow.screenY,
-		width: targetWindow.outerWidth,
-		height: targetWindow.outerHeight,
+		x,
+		y,
+		width: targetWindow.innerWidth,
+		height: targetWindow.innerHeight,
 	};
 }
 

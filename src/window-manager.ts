@@ -138,14 +138,23 @@ export class StickyWindowManager {
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
 		oldToolbar?.remove();
 
-		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限，兼顾单屏与多显示器副屏)
+		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限，兼顾单屏与多显示器副屏，防止拔屏失联)
 		const cache = this.app.metadataCache.getFileCache(file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
 		if (fm.bounds && typeof fm.bounds.x === 'number' && typeof fm.bounds.y === 'number') {
 			if (Number.isFinite(fm.bounds.x) && Number.isFinite(fm.bounds.y)) {
-				// 仅限制 Y 轴不要跑出屏幕上方不可视盲区，允许 X 轴自由跨多显示器展示
+				let safeX = fm.bounds.x;
 				const safeY = Math.max(-20, fm.bounds.y);
-				setWindowPosition(targetWin, fm.bounds.x, safeY);
+
+				// 拔出副屏容错：若当前屏幕处于标准单屏模式且历史 X 坐标已远超当前屏可视边界，自动拉回主屏视野
+				const screen = targetWin.screen;
+				const availLeft = (screen as unknown as Record<string, number | undefined>).availLeft ?? 0;
+				const availW = screen.availWidth || 1920;
+				if (availLeft === 0 && safeX > availW) {
+					safeX = Math.max(20, availW - (fm.bounds.width || 320) - 20);
+				}
+
+				setWindowPosition(targetWin, safeX, safeY);
 			}
 		}
 
@@ -206,11 +215,33 @@ export class StickyWindowManager {
 	}
 
 	/**
-	 * 全量持久化记录便笺窗口的真实物理几何坐标与尺寸
+	 * 全量持久化记录便笺窗口的真实物理几何坐标与内容尺寸 (带脏检查，无变更不写盘)
 	 */
 	private async persistWindowBounds(file: TFile, win: Window) {
 		try {
 			const b = getCurrentWindowBounds(win);
+
+			// 脏检查：若坐标与尺寸无实质变化（微小抖动 < 2px），直接跳过写入，避免无谓修改 mtime 和触发同步 diff
+			const cache = this.app.metadataCache.getFileCache(file);
+			const currentFm = (cache?.frontmatter as StickyNoteMeta) || {};
+			const prevBounds = currentFm.bounds;
+
+			if (
+				prevBounds &&
+				typeof prevBounds.x === 'number' &&
+				typeof prevBounds.y === 'number' &&
+				typeof prevBounds.width === 'number' &&
+				typeof prevBounds.height === 'number'
+			) {
+				const isUnchanged =
+					Math.abs(prevBounds.x - b.x) < 2 &&
+					Math.abs(prevBounds.y - b.y) < 2 &&
+					Math.abs(prevBounds.width - b.width) < 2 &&
+					Math.abs(prevBounds.height - b.height) < 2;
+
+				if (isUnchanged) return;
+			}
+
 			await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
 				const prev = (fm.bounds as Record<string, unknown>) || {};
 				fm.bounds = {

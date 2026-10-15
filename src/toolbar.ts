@@ -467,7 +467,7 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
-	 * 恢复为 Obsidian 主窗口普通笔记视窗 (收回收纳至主库)
+	 * 恢复为 Obsidian 主窗口普通笔记视窗 (收回收纳至主库，安全倒置时序杜绝新 Tab 随 popout 蒸发)
 	 */
 	private async restoreToMainWindow() {
 		const file = this.file;
@@ -476,16 +476,12 @@ export class DesktopStickyToolbar {
 		// 1. 立即触发视图安全落盘
 		await this.view.save();
 
-		// 2. 提前获取主窗口引用与通知提示
+		// 2. 提前获取主窗口引用
 		const openerWin = (window.opener as Window | null) ?? null;
-		const mainWin = (app.workspace as { containerWin?: Window }).containerWin ?? openerWin ?? window;
-		new Notice(t('noticeRestoredToMain'));
+		const activeWin = (window as unknown as { activeWindow?: Window }).activeWindow ?? null;
+		const mainWin = (app.workspace as { containerWin?: Window }).containerWin ?? openerWin ?? activeWin ?? window;
 
-		// 3. 安全清理工具栏并销毁当前独立便笺小窗
-		this.destroy();
-		this.view.leaf.detach();
-
-		// 4. 检查主窗口根工作区是否已打开此笔记，避免重复开启多余 Tab
+		// 3. 检查主窗口根工作区 (rootSplit) 是否已打开此笔记，避免重复开启多余 Tab
 		const rootSplit = app.workspace.rootSplit;
 		let targetLeaf = app.workspace.getLeavesOfType('markdown').find(
 			(l) => l.view instanceof MarkdownView && l.view.file?.path === file.path && l.getContainer() === rootSplit,
@@ -496,11 +492,18 @@ export class DesktopStickyToolbar {
 			await targetLeaf.openFile(file, { state: { mode: 'source' } });
 		}
 
-		// 5. 激活目标 Leaf 并确保主窗口置前激活
+		// 4. 先在主窗口激活目标 Leaf，确保 activeContainer 稳固锚定在主库
 		app.workspace.setActiveLeaf(targetLeaf, { focus: true });
+
+		// 5. 此时再安全清理工具栏并销毁当前独立便笺浮窗
+		this.destroy();
+		this.view.leaf.detach();
+
+		// 6. 主窗口置前聚焦并提示通知
 		if (mainWin && typeof mainWin.focus === 'function') {
 			mainWin.focus();
 		}
+		new Notice(t('noticeRestoredToMain'));
 	}
 
 	/**
