@@ -37,6 +37,8 @@ const zh = {
 	modeFloatTooltip: '当前：普通浮动 (点击切换为置顶)',
 	modePinTooltip: '当前：窗口置顶 (点击切换为停靠桌面)',
 	modeDockTooltip: '当前：停靠桌面 (点击恢复为普通浮动)',
+	modeTwoFloatTooltip: '当前：未置顶 (点击置顶)',
+	modeTwoPinTooltip: '当前：已置顶 (点击取消置顶)',
 
 	// 通知 Notice
 	noticePinned: '便笺已置顶',
@@ -84,6 +86,10 @@ const zh = {
 	settingAutoHideToolbarDesc: '鼠标移入便笺窗口时平滑显示工具栏，移出时自动隐藏，提供极致清爽的便笺纸体验',
 	settingHideFromTaskbar: '从系统任务栏隐藏便笺图标',
 	settingHideFromTaskbarDesc: '开启后，便笺小窗不占用系统任务栏位置，仅保留一个主程序图标 (仅 Windows / Linux 生效)',
+	settingPinMode: 'Pin 按钮切换模式',
+	settingPinModeDesc: '设置点击工具栏 Pin 图标时的状态流转行为',
+	settingPinModeThree: '三态流转 (浮动 ➔ 置顶 ➔ 停靠)',
+	settingPinModeTwo: '经典二态 (仅 浮动 ➔ 置顶)',
 };
 
 const en: typeof zh = {
@@ -117,6 +123,8 @@ const en: typeof zh = {
 	modeFloatTooltip: 'Current: Floating (Click to pin)',
 	modePinTooltip: 'Current: Pinned (Click to dock)',
 	modeDockTooltip: 'Current: Docked (Click to float)',
+	modeTwoFloatTooltip: 'Current: Unpinned (Click to pin)',
+	modeTwoPinTooltip: 'Current: Pinned (Click to unpin)',
 
 	// Notices
 	noticePinned: 'Sticky note pinned',
@@ -164,6 +172,10 @@ const en: typeof zh = {
 	settingAutoHideToolbarDesc: 'Smoothly show toolbar on hover and auto-hide when mouse leaves for a distraction-free experience',
 	settingHideFromTaskbar: 'Hide sticky notes from taskbar',
 	settingHideFromTaskbarDesc: 'Keep only the main Obsidian icon on the taskbar, without cluttering with sticky note windows (Windows / Linux only)',
+	settingPinMode: 'Pin button cycling mode',
+	settingPinModeDesc: 'State cycling behavior when clicking the toolbar Pin icon',
+	settingPinModeThree: 'Three-state (Floating ➔ Pinned ➔ Docked)',
+	settingPinModeTwo: 'Classic two-state (Floating ➔ Pinned only)',
 };
 
 export type TranslationKey = keyof typeof zh;

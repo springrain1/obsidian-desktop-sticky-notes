@@ -112,5 +112,19 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 						this.plugin.windowManager.updateAllNotesTaskbarVisibility(val);
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName(t('settingPinMode'))
+			.setDesc(t('settingPinModeDesc'))
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption('three-state', t('settingPinModeThree'))
+					.addOption('two-state', t('settingPinModeTwo'))
+					.setValue(this.plugin.settings.pinCycleMode)
+					.onChange(async (val) => {
+						this.plugin.settings.pinCycleMode = val as 'three-state' | 'two-state';
+						await this.plugin.saveSettings();
+					}),
+			);
 	}
 }

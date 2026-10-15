@@ -99,6 +99,7 @@ export interface StickyPluginSettings {
 	defaultPinned: boolean;
 	autoHideToolbar: boolean;
 	hideFromTaskbar: boolean;
+	pinCycleMode: 'three-state' | 'two-state';
 }
 
 export const DEFAULT_SETTINGS: StickyPluginSettings = {
@@ -109,4 +110,5 @@ export const DEFAULT_SETTINGS: StickyPluginSettings = {
 	defaultPinned: false,
 	autoHideToolbar: true,
 	hideFromTaskbar: true,
+	pinCycleMode: 'three-state',
 };

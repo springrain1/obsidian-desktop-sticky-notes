@@ -378,16 +378,24 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
-	 * 循环切换窗口形态 (Float -> Pin -> Dock -> Float)
+	 * 循环切换窗口形态 (三态流转或经典二态)
 	 */
 	private async cycleWindowMode() {
-		const nextModeMap: Record<WindowMode, WindowMode> = {
-			float: 'pin',
-			pin: 'dock',
-			dock: 'float',
-		};
+		const isThreeState = this.plugin.settings.pinCycleMode === 'three-state';
+		let nextMode: WindowMode = 'float';
 
-		const nextMode = nextModeMap[this.currentMode];
+		if (isThreeState) {
+			const nextModeMap: Record<WindowMode, WindowMode> = {
+				float: 'pin',
+				pin: 'dock',
+				dock: 'float',
+			};
+			nextMode = nextModeMap[this.currentMode];
+		} else {
+			// 经典二态：仅在 float 与 pin 之间来回切换
+			nextMode = this.currentMode === 'pin' ? 'float' : 'pin';
+		}
+
 		this.applyWindowMode(nextMode, true);
 		await this.persistFrontmatter({
 			mode: nextMode,
@@ -434,17 +442,18 @@ export class DesktopStickyToolbar {
 	private updatePinButtonUI() {
 		if (!this.pinBtnEl) return;
 
+		const isThreeState = this.plugin.settings.pinCycleMode === 'three-state';
 		let tooltip = '';
 		switch (this.currentMode) {
 			case 'float':
 				this.pinBtnEl.removeClass('is-active');
 				setIcon(this.pinBtnEl, 'pin');
-				tooltip = t('modeFloatTooltip');
+				tooltip = isThreeState ? t('modeFloatTooltip') : t('modeTwoFloatTooltip');
 				break;
 			case 'pin':
 				this.pinBtnEl.addClass('is-active');
 				setIcon(this.pinBtnEl, 'pin');
-				tooltip = t('modePinTooltip');
+				tooltip = isThreeState ? t('modePinTooltip') : t('modeTwoPinTooltip');
 				break;
 			case 'dock':
 				this.pinBtnEl.addClass('is-active');
