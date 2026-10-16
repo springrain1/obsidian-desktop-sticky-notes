@@ -336,13 +336,21 @@ body.is-evernote-sticky-window .view-content {
 	margin-bottom: 0 !important;
 }
 
-/* 光标与选区颜色匹配 */
-.is-evernote-sticky-window .cm-cursor {
+/* 光标与选区颜色匹配 (确保暗色主题下光标显眼可见，杜绝隐形) */
+.is-evernote-sticky-window .cm-cursor,
+.is-evernote-sticky-window .cm-cursor-primary,
+.is-evernote-sticky-window .cm-cursor-secondary,
+.is-evernote-sticky-window .cm-dropCursor {
 	border-left-color: var(--sticky-text-color) !important;
+	border-left-width: 2px !important;
+}
+
+.is-evernote-sticky-window .cm-content {
+	caret-color: var(--sticky-text-color) !important;
 }
 
 .is-evernote-sticky-window .cm-selectionBackground {
-	background-color: rgba(0, 0, 0, 0.12) !important;
+	background-color: rgba(66, 153, 225, 0.28) !important;
 }
 
 /* Live Preview 下的待办复选框 */

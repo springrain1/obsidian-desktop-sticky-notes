@@ -222,14 +222,18 @@ export class DesktopStickyToolbar {
 			new ConfirmModal(this.plugin.app, t('hubConfirmDelete'), () => {
 				void (async () => {
 					this.destroy();
-					this.view.leaf.detach();
+					if (this.targetWin && typeof this.targetWin.close === 'function') {
+						this.targetWin.close();
+					} else {
+						this.view.leaf.detach();
+					}
 					await this.plugin.app.fileManager.trashFile(this.file);
 					new Notice(t('noticeDeleted'));
 				})();
 			}).open();
 		};
 
-		// 13. 关闭便笺
+		// 13. 关闭便笺 (优先通过 targetWin.close 关闭原生独立宿主窗口，避免 leaf.detach 强行唤醒激活主窗口)
 		const closeBtn = rightGroup.createDiv({
 			cls: 'sticky-action-btn sticky-action-close',
 			title: t('tbClose'),
@@ -237,7 +241,11 @@ export class DesktopStickyToolbar {
 		setIcon(closeBtn, 'x');
 		closeBtn.onclick = () => {
 			this.destroy();
-			this.view.leaf.detach();
+			if (this.targetWin && typeof this.targetWin.close === 'function') {
+				this.targetWin.close();
+			} else {
+				this.view.leaf.detach();
+			}
 		};
 
 		// 确保工具栏置顶于内容上方
@@ -678,6 +686,7 @@ export class DesktopStickyToolbar {
 		this.containerEl.style.setProperty('--sticky-border-color', color.border);
 		this.containerEl.style.setProperty('--sticky-header-color', color.header);
 		this.containerEl.style.setProperty('--sticky-text-color', color.text);
+		this.containerEl.style.setProperty('--caret-color', color.text);
 	}
 
 	/**
