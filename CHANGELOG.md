@@ -1,56 +1,15 @@
-# 变更日志 / Changelog
+# Changelog
 
-所有关于 **Desktop Stickies** 插件的重要变更均记录于此文件。
+English | [中文](CHANGELOG_cn.md)
+
 All notable changes to the **Desktop Stickies** plugin will be documented in this file.
-
-本项目严格遵循 [语义化版本 2.0.0 (SemVer)](https://semver.org/lang/zh-CN/) 规范。
 This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 
 ---
 
 ## [1.3.0] - 2026-10-16
 
-### 🇨🇳 中文更新日志 (Chinese)
-
-#### 🌟 重磅新特性 (New Features)
-- **真·桌面小组件模式 (Desktop Widget Mode)**：
-  - 升级三态物理空间流转：`普通浮动 (Float)` ➔ `窗口置顶 (Pin)` ➔ `桌面小组件 (Widget)` ➔ `普通浮动 (Float)`；
-  - 挂载系统桌面宿主（Progman），**按 `Win+D`（显示桌面）时所有普通软件最小化，便签稳稳留在壁纸上常驻**；
-  - 保持 CodeMirror 6 完整的打字输入与打勾交互能力；鼠标移至其他窗口时触发失焦（blur），50ms 自动重置为底层（`HWND_BOTTOM`），绝不遮挡后续工作。
-- **自定义窄边框与间距自由调节**：
-  - 设置面板新增「正文上下间距（0~30px）」与「正文左右间距（0~30px）」可视化滑块；
-  - 调为 `0` 时，通过 API 级拔除 `.is-readable-line-width` 限制、清空滚动槽位与注入自适应换行，**文字真正从最左侧第 0 像素延展至最右侧边缘，实现极限贴边窄边框**；
-  - 滑块拖拽实时无刷新广播响应，即拖即见效。
-- **中间格式工具栏隐藏开关**：
-  - 设置面板提供「隐藏中间格式工具栏」选项，一键隐藏中间的格式化按钮，界面极致通透；
-  - 隐藏后顶部整条大面积空白直接作为拖拽抓手，随手一抓即可移动便签。
-
-#### 🐞 关键体验修复 (Bug Fixes)
-- **关闭/删除便签绝不再唤醒主窗口**：
-  - 点击工具栏右上角关闭按钮（✕）或移入废纸篓时，优先直接关闭原生独立窗口宿主（`targetWin.close()`），**彻底根治因 `leaf.detach()` 焦点补偿机制导致 Obsidian 主窗口突然弹跳置顶打扰工作的顽疾**。
-- **暗色主题 (Charcoal) 语法全兼容与光标显形**：
-  - **光标 2px 耀眼亮白**：光标与输入点全链路绑定 `--sticky-text-color`，彻底解决深黑背景下黑色光标隐形消失的问题；
-  - **动态深色主题渲染管线**：切换暗色便签时自动切换宿主窗口的主题上下文（`theme-dark`），激活 Obsidian 官方深色渲染算法；
-  - **全套排版语法立体适配**：表格（表头与单元格）、Callout 标注块（含中性灰 quote 类型）、未创建内部双链（`is-unresolved`）、引用块、LaTeX 数学公式、代码块全部赋予明亮高对比度呈现，告别“黑底写黑字”。
-- **历史尺寸与坐标绝对精准还原**：
-  - 二次定位强力注入内容尺寸（`setWindowContentSize`），用户调整的历史高度（如 250px）在下一次打开时 100% 绝对 1:1 复原，不再被默认 380px 覆盖；
-  - 尺寸采集严格基于内容区，彻底消除开合循环外边框膨胀；
-  - 监听原生 Electron `move` 事件，真正做到拖拽松手 500ms 静默存盘；外接副屏拔除后自动拉回主屏视野。
-- **时间格式优化**：新建便签的 `created_at` 统一采用 `YYYY-MM-DD HH:mm:ss` 本地时间格式，消除 8 小时 UTC 时差，完美契合 Obsidian 属性视图与 Dataview 生态。
-
-#### ⚡ 架构优化与精简 (Refactoring)
-- **净消减 85 行冗余代码**：
-  - 移除多余的单例类包装与手写子进程类型，改用扁平纯函数导出；
-  - Win32 守护进程改为**首次调用时按需惰性冷启动**，未用小组件模式时 0 内存占用、0 启动开销；
-  - 收敛浮窗便笺过滤逻辑（DRY 生成器重构），消除 4 处重复遍历；
-  - 移除无用变量 `isReady` 与未消费的标准输出流；
-  - 窗口卸载（onunload）显式清理防抖计时器，杜绝游离回调。
-
----
-
-### 🇺🇸 English Changelog
-
-#### 🌟 New Features
+### 🌟 New Features
 - **True Desktop Widget Mode**:
   - Three-state physical Z-order cycling: `Floating` ➔ `Pinned (Topmost)` ➔ `Desktop Widget` ➔ `Floating`;
   - Embedded into the Windows desktop shell (Progman), **immune to `Win+D` (Show Desktop) minimizing, remaining permanently pinned to your wallpaper**;
@@ -62,7 +21,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 - **Hide Center Formatting Toolbar**:
   - Optional toggle to hide formatting buttons in the center of the toolbar, creating a large, seamless drag-handle area for effortless repositioning.
 
-#### 🐞 Bug Fixes
+### 🐞 Bug Fixes
 - **Distraction-Free Window Closing**:
   - Closing a sticky note directly closes the popup window without activating Obsidian's main window, eliminating unwanted window popups.
 - **Full Charcoal Dark Theme Compatibility**:
@@ -76,7 +35,7 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
   - Disconnected secondary monitor auto-recovery keeps notes safely visible.
 - **Local Datetime Format**: New notes record `created_at` in `YYYY-MM-DD HH:mm:ss` local time, eliminating confusing 8-hour UTC offsets and integrating smoothly with Properties & Dataview.
 
-#### ⚡ Refactoring & Performance
+### ⚡ Refactoring & Performance
 - **Net reduction of 85 redundant lines**:
   - Replaced bulky singleton classes and simulated types with clean typed exports;
   - Lazy initialization for the Win32 worker process (zero overhead when widget mode is unused);
@@ -87,19 +46,19 @@ This project adheres to [Semantic Versioning 2.0.0](https://semver.org/).
 ---
 
 ## [1.2.0] - 2026-10-16
-- 插件 ID 规范升级为 `desktop-stickies` (Plugin ID renamed to `desktop-stickies`);
-- 引入物理坐标自动记忆与多屏拔除安全保护 (Silent physical coordinate persistence & multi-monitor clamping);
-- 新增「恢复为主窗口」功能 (Added Restore to Main Window feature);
-- 设置面板增加 Pin 按钮流转模式选项 (Added pin button cycling mode settings).
+- Plugin ID renamed to `desktop-stickies`;
+- Silent physical coordinate persistence & multi-monitor clamping;
+- Added Restore to Main Window feature;
+- Added pin button cycling mode settings.
 
 ---
 
 ## [1.1.0] - 2026-10-15
-- 新增任务栏防拥挤特性 (Taskbar anti-clutter skip feature);
-- 新增 Charcoal 暗夜碳黑皮肤 (Added Charcoal Dark paper skin);
-- 开源许可协议切换为 MIT 协议 (Switched license to MIT License).
+- Taskbar anti-clutter skip feature;
+- Added Charcoal Dark paper skin;
+- Switched license to MIT License.
 
 ---
 
 ## [1.0.0] - 2026-10-14
-- 初版发布 (Initial release): Standalone popout windows, Live Preview editing, rich-text toolbar, 7 skeuomorphic paper skins, and Notes Hub.
+- Initial release: Standalone popout windows, Live Preview editing, rich-text toolbar, 7 skeuomorphic paper skins, and Notes Hub.
