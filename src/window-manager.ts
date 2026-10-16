@@ -379,6 +379,14 @@ export class StickyWindowManager {
 				editorEl?.classList.remove('is-readable-line-width');
 				view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
 				view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
+
+				// 关键 API 手段：触发编辑器尺寸重新测量，清空旧的断行缓存，使文本立即按照最新边距重新断行
+				if (typeof (view as unknown as { onResize?: () => void }).onResize === 'function') {
+					(view as unknown as { onResize: () => void }).onResize();
+				}
+				if (targetWin && typeof targetWin.dispatchEvent === 'function') {
+					targetWin.dispatchEvent(new Event('resize'));
+				}
 			}
 		}
 	}

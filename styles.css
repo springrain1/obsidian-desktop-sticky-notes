@@ -306,6 +306,8 @@ body.is-evernote-sticky-window .view-content {
 	width: 100% !important;
 	max-width: 100% !important;
 	box-sizing: border-box !important;
+	word-break: break-word !important;
+	overflow-wrap: anywhere !important;
 }
 
 .is-evernote-sticky-window .cm-line {
@@ -313,6 +315,8 @@ body.is-evernote-sticky-window .view-content {
 	padding-right: 0 !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
+	word-break: break-word !important;
+	overflow-wrap: anywhere !important;
 }
 
 .is-evernote-sticky-window .cm-line:first-child {
