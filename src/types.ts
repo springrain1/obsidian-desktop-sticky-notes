@@ -75,12 +75,12 @@ export function getStickyColorName(colorKey: string): string {
 	return key ? t(key) : colorKey;
 }
 
-export type WindowMode = 'float' | 'pin' | 'dock';
+export type WindowMode = 'float' | 'pin' | 'widget';
 
 export interface StickyNoteMeta {
 	is_sticky?: boolean;
 	pinned?: boolean;
-	mode?: WindowMode;
+	mode?: WindowMode | 'dock';
 	color?: string;
 	bounds?: {
 		x?: number;

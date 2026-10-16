@@ -35,15 +35,17 @@ const zh = {
 
 	// 三态窗口模式 Tooltip
 	modeFloatTooltip: '当前：普通浮动 (点击切换为置顶)',
-	modePinTooltip: '当前：窗口置顶 (点击切换为桌面贴纸)',
-	modeDockTooltip: '当前：桌面贴纸 (点击恢复为普通浮动)',
+	modePinTooltip: '当前：窗口置顶 (点击切换为桌面小组件)',
+	modeWidgetTooltip: '当前：桌面小组件 (贴入壁纸/Win+D常驻，点击切换为浮动)',
+	modeDockTooltip: '当前：桌面小组件 (贴入壁纸/Win+D常驻，点击切换为浮动)',
 	modeTwoFloatTooltip: '当前：未置顶 (点击置顶)',
 	modeTwoPinTooltip: '当前：已置顶 (点击取消置顶)',
 
 	// 通知 Notice
 	noticePinned: '便笺已置顶',
 	noticeUnpinned: '便笺已取消置顶',
-	noticeDocked: '已切换为桌面贴纸模式 (非置顶/任务栏隐藏)',
+	noticeWidget: '已切换为桌面小组件模式 (贴入壁纸，Win+D 常驻)',
+	noticeDocked: '已切换为桌面小组件模式 (贴入壁纸，Win+D 常驻)',
 	noticeFloat: '便笺已恢复为普通浮动',
 	noticeRestoredToMain: '已恢复至主窗口打开',
 	noticeTitleShow: '已显示笔记标题',
@@ -88,7 +90,7 @@ const zh = {
 	settingHideFromTaskbarDesc: '开启后，便笺小窗不占用系统任务栏位置，仅保留一个主程序图标 (仅 Windows / Linux 生效)',
 	settingPinMode: 'Pin 按钮切换模式',
 	settingPinModeDesc: '设置点击工具栏 Pin 图标时的状态流转行为',
-	settingPinModeThree: '三态流转 (浮动 ➔ 置顶 ➔ 桌面贴纸)',
+	settingPinModeThree: '三态流转 (浮动 ➔ 置顶 ➔ 桌面小组件)',
 	settingPinModeTwo: '经典二态 (仅 浮动 ➔ 置顶)',
 	settingHideFormattingToolbar: '隐藏中间格式工具栏',
 	settingHideFormattingToolbarDesc: '隐藏工具栏中间的待办、列表、删除线、图片等格式按钮，只保留两侧的核心操作，界面更加极简通透',
@@ -127,15 +129,17 @@ const en: typeof zh = {
 
 	// Three-state Window Mode Tooltips
 	modeFloatTooltip: 'Current: Floating (Click to pin)',
-	modePinTooltip: 'Current: Pinned (Click to desktop sticker)',
-	modeDockTooltip: 'Current: Desktop sticker (Click to float)',
+	modePinTooltip: 'Current: Pinned (Click to desktop widget)',
+	modeWidgetTooltip: 'Current: Desktop widget (Embedded on wallpaper / Stays on Win+D, Click to float)',
+	modeDockTooltip: 'Current: Desktop widget (Embedded on wallpaper / Stays on Win+D, Click to float)',
 	modeTwoFloatTooltip: 'Current: Unpinned (Click to pin)',
 	modeTwoPinTooltip: 'Current: Pinned (Click to unpin)',
 
 	// Notices
 	noticePinned: 'Sticky note pinned',
 	noticeUnpinned: 'Sticky note unpinned',
-	noticeDocked: 'Switched to desktop sticker mode (Unpinned/Taskbar hidden)',
+	noticeWidget: 'Switched to desktop widget mode (Embedded on wallpaper)',
+	noticeDocked: 'Switched to desktop widget mode (Embedded on wallpaper)',
 	noticeFloat: 'Sticky note restored to floating',
 	noticeRestoredToMain: 'Restored to main window',
 	noticeTitleShow: 'Note title visible',
@@ -180,7 +184,7 @@ const en: typeof zh = {
 	settingHideFromTaskbarDesc: 'Keep only the main Obsidian icon on the taskbar, without cluttering with sticky note windows (Windows / Linux only)',
 	settingPinMode: 'Pin button cycling mode',
 	settingPinModeDesc: 'State cycling behavior when clicking the toolbar Pin icon',
-	settingPinModeThree: 'Three-state (Floating ➔ Pinned ➔ Sticker)',
+	settingPinModeThree: 'Three-state (Floating ➔ Pinned ➔ Desktop widget)',
 	settingPinModeTwo: 'Classic two-state (Floating ➔ Pinned only)',
 	settingHideFormattingToolbar: 'Hide center formatting toolbar',
 	settingHideFormattingToolbarDesc: 'Hide checklist, list, formatting, and image buttons in the center of the toolbar for a minimalist layout',

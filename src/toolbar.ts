@@ -6,7 +6,12 @@ import {
 	Editor,
 } from 'obsidian';
 import { STICKY_COLORS, StickyNoteMeta, WindowMode, getStickyColorName, StickyColorInfo } from './types';
-import { setWindowTopmost, setWindowSkipTaskbar } from './electron-helper';
+import {
+	setWindowTopmost,
+	setWindowSkipTaskbar,
+	setWindowWidgetMode,
+	pushWindowToBottom,
+} from './electron-helper';
 import { ConfirmModal } from './confirm-modal';
 import { t } from './i18n';
 import type DesktopStickyNotesPlugin from './main';
@@ -27,6 +32,8 @@ export class DesktopStickyToolbar {
 	private showTitle = false;
 	private showYaml = false;
 	private currentColor = 'yellow';
+	private blurAbortController: AbortController | null = null;
+	private heartbeatTimer: number | null = null;
 
 	constructor(
 		plugin: DesktopStickyNotesPlugin,
@@ -64,7 +71,9 @@ export class DesktopStickyToolbar {
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
 		this.currentColor = fm.color || this.plugin.settings.defaultColor;
 
-		if (fm.mode) {
+		if (fm.mode === 'widget' || fm.mode === 'dock') {
+			this.currentMode = 'widget';
+		} else if (fm.mode === 'pin' || fm.mode === 'float') {
 			this.currentMode = fm.mode;
 		} else if (fm.pinned !== undefined) {
 			this.currentMode = fm.pinned ? 'pin' : 'float';
@@ -390,10 +399,10 @@ export class DesktopStickyToolbar {
 		if (isThreeState) {
 			const nextModeMap: Record<WindowMode, WindowMode> = {
 				float: 'pin',
-				pin: 'dock',
-				dock: 'float',
+				pin: 'widget',
+				widget: 'float',
 			};
-			nextMode = nextModeMap[this.currentMode];
+			nextMode = nextModeMap[this.currentMode] || 'float';
 		} else {
 			// 经典二态：仅在 float 与 pin 之间来回切换
 			nextMode = this.currentMode === 'pin' ? 'float' : 'pin';
@@ -407,6 +416,49 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
+	 * 绑定 Widget 模式下的失焦沉底守卫与周期保活心跳
+	 */
+	private attachWidgetGuards() {
+		this.detachWidgetGuards();
+
+		this.blurAbortController = new AbortController();
+		const { signal } = this.blurAbortController;
+
+		// 1. 失焦沉底守卫 (防抖 50ms)
+		let blurDebounce: number | null = null;
+		this.targetWin.addEventListener(
+			'blur',
+			() => {
+				if (this.currentMode === 'widget') {
+					if (blurDebounce !== null) this.targetWin.clearTimeout(blurDebounce);
+					blurDebounce = this.targetWin.setTimeout(() => {
+						pushWindowToBottom(this.targetWin);
+					}, 50);
+				}
+			},
+			{ signal },
+		);
+
+		// 2. 保活心跳 (每 10 秒轻量沉底保活，防 Explorer 异常导致宿主层级脱节)
+		this.heartbeatTimer = this.targetWin.setInterval(() => {
+			if (this.currentMode === 'widget' && this.targetWin && !this.targetWin.closed) {
+				pushWindowToBottom(this.targetWin);
+			}
+		}, 10000);
+	}
+
+	private detachWidgetGuards() {
+		if (this.blurAbortController) {
+			this.blurAbortController.abort();
+			this.blurAbortController = null;
+		}
+		if (this.heartbeatTimer !== null) {
+			this.targetWin.clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = null;
+		}
+	}
+
+	/**
 	 * 应用窗口模式样式、层级与图标
 	 */
 	public applyWindowMode(mode: WindowMode, showNotice = false) {
@@ -415,24 +467,29 @@ export class DesktopStickyToolbar {
 
 		switch (mode) {
 			case 'float':
+				this.detachWidgetGuards();
+				setWindowWidgetMode(targetWin, false);
 				setWindowTopmost(targetWin, false);
 				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
-				this.containerEl.removeClass('is-docked');
+				this.containerEl.classList.remove('is-widget', 'is-docked');
 				if (showNotice) new Notice(t('noticeFloat'), 1500);
 				break;
 
 			case 'pin':
+				this.detachWidgetGuards();
+				setWindowWidgetMode(targetWin, false);
 				setWindowTopmost(targetWin, true);
 				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
-				this.containerEl.removeClass('is-docked');
+				this.containerEl.classList.remove('is-widget', 'is-docked');
 				if (showNotice) new Notice(t('noticePinned'), 1500);
 				break;
 
-			case 'dock':
+			case 'widget':
 				setWindowTopmost(targetWin, false);
-				setWindowSkipTaskbar(targetWin, true);
-				this.containerEl.addClass('is-docked');
-				if (showNotice) new Notice(t('noticeDocked'), 1500);
+				setWindowWidgetMode(targetWin, true);
+				this.attachWidgetGuards();
+				this.containerEl.classList.add('is-widget');
+				if (showNotice) new Notice(t('noticeWidget'), 2000);
 				break;
 		}
 
@@ -458,10 +515,10 @@ export class DesktopStickyToolbar {
 				setIcon(this.pinBtnEl, 'pin');
 				tooltip = isThreeState ? t('modePinTooltip') : t('modeTwoPinTooltip');
 				break;
-			case 'dock':
+			case 'widget':
 				this.pinBtnEl.addClass('is-active');
 				setIcon(this.pinBtnEl, 'anchor');
-				tooltip = t('modeDockTooltip');
+				tooltip = t('modeWidgetTooltip');
 				break;
 		}
 
@@ -688,6 +745,10 @@ export class DesktopStickyToolbar {
 	}
 
 	public destroy() {
+		this.detachWidgetGuards();
+		if (this.currentMode === 'widget') {
+			setWindowWidgetMode(this.targetWin, false);
+		}
 		this.closeSkinSelector();
 	}
 }

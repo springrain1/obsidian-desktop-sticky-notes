@@ -1,3 +1,5 @@
+import { win32Worker } from './win32-worker';
+
 /**
  * Electron 窗口操作辅助工具
  */
@@ -9,6 +11,7 @@ interface ElectronWindow {
 	setPosition?(this: void, x: number, y: number, animate?: boolean): void;
 	setSize?(this: void, width: number, height: number): void;
 	setContentSize?(this: void, width: number, height: number): void;
+	getNativeWindowHandle?(): Buffer;
 }
 
 interface ElectronRemote {
@@ -176,5 +179,52 @@ export function setWindowContentSize(targetWindow: Window, width: number, height
 		return true;
 	} catch {
 		return false;
+	}
+}
+
+/**
+ * 提取目标窗口的 16 进制 HWND 句柄字符串
+ */
+export function getNativeWindowHwnd(targetWindow: Window): string | null {
+	const bw = getTargetBrowserWindow(targetWindow);
+	if (!bw || typeof bw.getNativeWindowHandle !== 'function') return null;
+	try {
+		const buf: Buffer = bw.getNativeWindowHandle();
+		const hwndVal = buf.readBigInt64LE ? buf.readBigInt64LE(0) : BigInt(buf.readUInt32LE(0));
+		return hwndVal.toString(16);
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * 设置便签小组件模式 (Widget Mode: 嵌入 Progman 宿主层，免疫 Win+D 最小化)
+ */
+export function setWindowWidgetMode(targetWindow: Window, enable: boolean): boolean {
+	if (process.platform !== 'win32') return false;
+	const hwnd = getNativeWindowHwnd(targetWindow);
+	if (!hwnd) return false;
+
+	const bw = getTargetBrowserWindow(targetWindow);
+	if (enable) {
+		if (bw) {
+			bw.setAlwaysOnTop(false);
+			if (typeof bw.setSkipTaskbar === 'function') bw.setSkipTaskbar(true);
+		}
+		win32Worker.sendCommand('ATTACH', hwnd);
+	} else {
+		win32Worker.sendCommand('DETACH', hwnd);
+	}
+	return true;
+}
+
+/**
+ * 将窗口推至桌面底层 (HWND_BOTTOM)
+ */
+export function pushWindowToBottom(targetWindow: Window): void {
+	if (process.platform !== 'win32') return;
+	const hwnd = getNativeWindowHwnd(targetWindow);
+	if (hwnd) {
+		win32Worker.sendCommand('BOTTOM', hwnd);
 	}
 }

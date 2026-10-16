@@ -153,7 +153,8 @@
 	display: none !important;
 }
 
-/* 桌面停靠态：消除扩散大阴影，平整贴合桌面 */
+/* 桌面小组件态：消除扩散大阴影，平整贴合桌面 */
+.evernote-sticky-card.is-widget,
 .evernote-sticky-card.is-docked {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--sticky-border-color) !important;
 }
