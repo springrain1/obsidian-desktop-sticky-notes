@@ -677,16 +677,43 @@ export class DesktopStickyToolbar {
 	}
 
 	/**
-	 * 应用便笺配色至当前容器
+	 * 应用便笺配色至当前容器 (全量渗透 Obsidian 官方语义变量，解决表格/引用/代码块暗色隐形灾难)
 	 */
 	public applyColorTheme(colorKey: string) {
 		const fallbackColor = STICKY_COLORS.yellow as StickyColorInfo;
 		const color = STICKY_COLORS[colorKey] ?? fallbackColor;
+		const isDark = colorKey === 'charcoal';
+
+		// 基础便签卡片变量
 		this.containerEl.style.setProperty('--sticky-bg-color', color.bg);
 		this.containerEl.style.setProperty('--sticky-border-color', color.border);
 		this.containerEl.style.setProperty('--sticky-header-color', color.header);
 		this.containerEl.style.setProperty('--sticky-text-color', color.text);
 		this.containerEl.style.setProperty('--caret-color', color.text);
+
+		// 全量覆盖 Obsidian 官方排版语义变量 (覆盖主库亮色继承导致的深黑文字)
+		const textNormal = color.text;
+		const textMuted = isDark ? '#CBD5E1' : 'rgba(0, 0, 0, 0.65)';
+		const textFaint = isDark ? '#94A3B8' : 'rgba(0, 0, 0, 0.45)';
+		const tableBorder = isDark ? '#404040' : color.border;
+		const tableHeaderBg = isDark ? '#2A2A2A' : 'rgba(0, 0, 0, 0.04)';
+		const tableRowAltBg = isDark ? '#242424' : 'rgba(0, 0, 0, 0.02)';
+		const codeBg = isDark ? '#2D2D2D' : 'rgba(0, 0, 0, 0.06)';
+
+		this.containerEl.style.setProperty('--text-normal', textNormal);
+		this.containerEl.style.setProperty('--text-muted', textMuted);
+		this.containerEl.style.setProperty('--text-faint', textFaint);
+
+		// 表格原生专属变量
+		this.containerEl.style.setProperty('--table-header-color', textNormal);
+		this.containerEl.style.setProperty('--table-text-color', textNormal);
+		this.containerEl.style.setProperty('--table-border-color', tableBorder);
+		this.containerEl.style.setProperty('--table-header-background', tableHeaderBg);
+		this.containerEl.style.setProperty('--table-row-alt-background', tableRowAltBg);
+
+		// 代码块原生变量
+		this.containerEl.style.setProperty('--code-background', codeBg);
+		this.containerEl.style.setProperty('--code-normal', textNormal);
 	}
 
 	/**

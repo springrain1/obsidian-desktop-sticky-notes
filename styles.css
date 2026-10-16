@@ -359,6 +359,109 @@ body.is-evernote-sticky-window .view-content {
 	cursor: pointer;
 }
 
+/* ================= Obsidian 核心排版语法元素全兼容 (防范暗色模式黑底黑字隐形) ================= */
+
+/* 1. 表格组件 (Table Widget & Rendered Table) */
+.is-evernote-sticky-window table,
+.is-evernote-sticky-window .cm-table-widget,
+.is-evernote-sticky-window .table-wrapper,
+.is-evernote-sticky-window .markdown-rendered-table {
+	color: var(--sticky-text-color) !important;
+	border-color: var(--table-border-color, var(--sticky-border-color)) !important;
+}
+
+.is-evernote-sticky-window th,
+.is-evernote-sticky-window .cm-table-widget th {
+	color: var(--sticky-text-color) !important;
+	background-color: var(--table-header-background, rgba(0, 0, 0, 0.04)) !important;
+	border-color: var(--table-border-color, var(--sticky-border-color)) !important;
+	font-weight: 600 !important;
+}
+
+.is-evernote-sticky-window td,
+.is-evernote-sticky-window .cm-table-widget td {
+	color: var(--sticky-text-color) !important;
+	border-color: var(--table-border-color, var(--sticky-border-color)) !important;
+}
+
+/* 2. 引用块 (Blockquote) */
+.is-evernote-sticky-window blockquote,
+.is-evernote-sticky-window .HyperMD-quote {
+	color: var(--sticky-text-color) !important;
+	border-left-color: var(--sticky-border-color) !important;
+}
+
+/* 3. 列表序号与项目符号 (List formatting) */
+.is-evernote-sticky-window .cm-formatting-list,
+.is-evernote-sticky-window .list-bullet {
+	color: var(--sticky-text-color) !important;
+}
+
+/* 4. 数学公式 (LaTeX / MathJax) */
+.is-evernote-sticky-window .math,
+.is-evernote-sticky-window .math-inline,
+.is-evernote-sticky-window .math-block,
+.is-evernote-sticky-window .cm-math {
+	color: var(--sticky-text-color) !important;
+}
+
+/* 5. 行内代码与代码块 (Code) */
+.is-evernote-sticky-window code,
+.is-evernote-sticky-window .cm-inline-code,
+.is-evernote-sticky-window .HyperMD-codeblock {
+	color: var(--sticky-text-color) !important;
+	background-color: var(--code-background, rgba(0, 0, 0, 0.06)) !important;
+}
+
+/* 6. 水平分割线 (Horizontal Rule) */
+.is-evernote-sticky-window hr,
+.is-evernote-sticky-window .cm-hr {
+	border-color: var(--sticky-border-color) !important;
+}
+
+/* 7. Callout 标注块 (全面适配暗色与亮色便签，正文防隐形) */
+.is-evernote-sticky-window .callout {
+	background-color: rgba(var(--callout-color, 68, 138, 255), 0.12) !important;
+	border-color: rgba(var(--callout-color, 68, 138, 255), 0.35) !important;
+	color: var(--sticky-text-color) !important;
+}
+
+.is-evernote-sticky-window .callout-title {
+	color: rgb(var(--callout-color, 68, 138, 255)) !important;
+}
+
+.is-evernote-sticky-window .callout-icon,
+.is-evernote-sticky-window .callout-fold {
+	color: rgb(var(--callout-color, 68, 138, 255)) !important;
+}
+
+.is-evernote-sticky-window .callout-content,
+.is-evernote-sticky-window .callout-content p,
+.is-evernote-sticky-window .callout-content li {
+	color: var(--sticky-text-color) !important;
+}
+
+/* 8. 标题与加粗强调 (Headings & Bold) */
+.is-evernote-sticky-window h1,
+.is-evernote-sticky-window h2,
+.is-evernote-sticky-window h3,
+.is-evernote-sticky-window h4,
+.is-evernote-sticky-window h5,
+.is-evernote-sticky-window h6,
+.is-evernote-sticky-window .cm-header,
+.is-evernote-sticky-window b,
+.is-evernote-sticky-window strong,
+.is-evernote-sticky-window .cm-strong {
+	color: var(--sticky-text-color) !important;
+}
+
+/* 9. 语法高亮 (Highlight ==text==) */
+.is-evernote-sticky-window mark,
+.is-evernote-sticky-window .cm-highlight {
+	background-color: #FBBF24 !important;
+	color: #1A202C !important;
+}
+
 /* 滚动条极简化 */
 .is-evernote-sticky-window .cm-scroller::-webkit-scrollbar {
 	width: 5px;
