@@ -437,19 +437,17 @@ export class DesktopStickyToolbar {
 		this.targetWin.addEventListener(
 			'blur',
 			() => {
-				if (this.currentMode === 'widget') {
-					if (blurDebounce !== null) this.targetWin.clearTimeout(blurDebounce);
-					blurDebounce = this.targetWin.setTimeout(() => {
-						pushWindowToBottom(this.targetWin);
-					}, 50);
-				}
+				if (blurDebounce !== null) this.targetWin.clearTimeout(blurDebounce);
+				blurDebounce = this.targetWin.setTimeout(() => {
+					pushWindowToBottom(this.targetWin);
+				}, 50);
 			},
 			{ signal },
 		);
 
 		// 2. 保活心跳 (每 10 秒轻量沉底保活，防 Explorer 异常导致宿主层级脱节)
 		this.heartbeatTimer = this.targetWin.setInterval(() => {
-			if (this.currentMode === 'widget' && this.targetWin && !this.targetWin.closed) {
+			if (!this.targetWin.closed) {
 				pushWindowToBottom(this.targetWin);
 			}
 		}, 10000);
@@ -473,22 +471,22 @@ export class DesktopStickyToolbar {
 		this.currentMode = mode;
 		const targetWin = this.targetWin;
 
+		if (mode !== 'widget') {
+			this.detachWidgetGuards();
+			setWindowWidgetMode(targetWin, false);
+			this.containerEl.removeClass('is-widget');
+		}
+
 		switch (mode) {
 			case 'float':
-				this.detachWidgetGuards();
-				setWindowWidgetMode(targetWin, false);
 				setWindowTopmost(targetWin, false);
 				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
-				this.containerEl.classList.remove('is-widget', 'is-docked');
 				if (showNotice) new Notice(t('noticeFloat'), 1500);
 				break;
 
 			case 'pin':
-				this.detachWidgetGuards();
-				setWindowWidgetMode(targetWin, false);
 				setWindowTopmost(targetWin, true);
 				setWindowSkipTaskbar(targetWin, this.plugin.settings.hideFromTaskbar);
-				this.containerEl.classList.remove('is-widget', 'is-docked');
 				if (showNotice) new Notice(t('noticePinned'), 1500);
 				break;
 
@@ -496,7 +494,7 @@ export class DesktopStickyToolbar {
 				setWindowTopmost(targetWin, false);
 				setWindowWidgetMode(targetWin, true);
 				this.attachWidgetGuards();
-				this.containerEl.classList.add('is-widget');
+				this.containerEl.addClass('is-widget');
 				if (showNotice) new Notice(t('noticeWidget'), 2000);
 				break;
 		}

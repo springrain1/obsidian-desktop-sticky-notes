@@ -37,7 +37,6 @@ const zh = {
 	modeFloatTooltip: '当前：普通浮动 (点击切换为置顶)',
 	modePinTooltip: '当前：窗口置顶 (点击切换为桌面小组件)',
 	modeWidgetTooltip: '当前：桌面小组件 (贴入壁纸/Win+D常驻，点击切换为浮动)',
-	modeDockTooltip: '当前：桌面小组件 (贴入壁纸/Win+D常驻，点击切换为浮动)',
 	modeTwoFloatTooltip: '当前：未置顶 (点击置顶)',
 	modeTwoPinTooltip: '当前：已置顶 (点击取消置顶)',
 
@@ -45,7 +44,6 @@ const zh = {
 	noticePinned: '便笺已置顶',
 	noticeUnpinned: '便笺已取消置顶',
 	noticeWidget: '已切换为桌面小组件模式 (贴入壁纸，Win+D 常驻)',
-	noticeDocked: '已切换为桌面小组件模式 (贴入壁纸，Win+D 常驻)',
 	noticeFloat: '便笺已恢复为普通浮动',
 	noticeRestoredToMain: '已恢复至主窗口打开',
 	noticeTitleShow: '已显示笔记标题',
@@ -131,7 +129,6 @@ const en: typeof zh = {
 	modeFloatTooltip: 'Current: Floating (Click to pin)',
 	modePinTooltip: 'Current: Pinned (Click to desktop widget)',
 	modeWidgetTooltip: 'Current: Desktop widget (Embedded on wallpaper / Stays on Win+D, Click to float)',
-	modeDockTooltip: 'Current: Desktop widget (Embedded on wallpaper / Stays on Win+D, Click to float)',
 	modeTwoFloatTooltip: 'Current: Unpinned (Click to pin)',
 	modeTwoPinTooltip: 'Current: Pinned (Click to unpin)',
 
@@ -139,7 +136,6 @@ const en: typeof zh = {
 	noticePinned: 'Sticky note pinned',
 	noticeUnpinned: 'Sticky note unpinned',
 	noticeWidget: 'Switched to desktop widget mode (Embedded on wallpaper)',
-	noticeDocked: 'Switched to desktop widget mode (Embedded on wallpaper)',
 	noticeFloat: 'Sticky note restored to floating',
 	noticeRestoredToMain: 'Restored to main window',
 	noticeTitleShow: 'Note title visible',

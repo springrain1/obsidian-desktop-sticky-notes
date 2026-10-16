@@ -188,8 +188,6 @@ export class StickyWindowManager {
 
 		// 注入桌面便笺窗口专属样式标记与间距变量
 		targetWin.document.body.classList.add('is-evernote-sticky-window');
-		targetWin.document.body.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
-		targetWin.document.body.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
 
 		// 关键 API 手段：从 DOM 根源直接拔除 is-readable-line-width 类名，彻底解开小窗口的右侧行宽锁死
 		const editorEl = view.contentEl.querySelector('.markdown-source-view');
@@ -304,22 +302,31 @@ export class StickyWindowManager {
 	}
 
 	/**
+	 * 获取所有当前处于独立浮窗中的便笺视图 (统一收敛浮窗过滤逻辑)
+	 */
+	private *stickyPopoutViews(): IterableIterator<{ leaf: WorkspaceLeaf; view: MarkdownView; targetWin: Window | null }> {
+		const rootSplit = this.app.workspace.rootSplit;
+		for (const leaf of this.app.workspace.getLeavesOfType('markdown')) {
+			const view = leaf.view;
+			if (view instanceof MarkdownView && leaf.getContainer() !== rootSplit) {
+				const targetWin = view.containerEl.ownerDocument.defaultView;
+				yield { leaf, view, targetWin };
+			}
+		}
+	}
+
+	/**
 	 * 自动扫描并重新渲染所有处于独立浮窗中的便笺 (解决关闭主窗口或启动恢复工作区后便笺退化为普通窗口的缺陷)
 	 */
 	public rehydrateExistingStickyNotes() {
-		const rootSplit = this.app.workspace.rootSplit;
-		const leaves = this.app.workspace.getLeavesOfType('markdown');
-		for (const leaf of leaves) {
-			if (leaf.getContainer() !== rootSplit) {
-				const view = leaf.view;
-				if (view instanceof MarkdownView && view.file) {
-					const cache = this.app.metadataCache.getFileCache(view.file);
-					const fm = cache?.frontmatter as StickyNoteMeta | undefined;
-					if (fm && (fm.is_sticky || fm.mode)) {
-						const hasToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
-						if (!hasToolbar) {
-							this.mountStickyFeatures(leaf, view.file);
-						}
+		for (const { leaf, view } of this.stickyPopoutViews()) {
+			if (view.file) {
+				const cache = this.app.metadataCache.getFileCache(view.file);
+				const fm = cache?.frontmatter as StickyNoteMeta | undefined;
+				if (fm && (fm.is_sticky || fm.mode)) {
+					const hasToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
+					if (!hasToolbar) {
+						this.mountStickyFeatures(leaf, view.file);
 					}
 				}
 			}
@@ -330,14 +337,9 @@ export class StickyWindowManager {
 	 * 批量同步更新所有已打开桌面便笺窗口的任务栏可见性 (隐藏或恢复)
 	 */
 	public updateAllNotesTaskbarVisibility(skip: boolean) {
-		const leaves = this.app.workspace.getLeavesOfType('markdown');
-		for (const leaf of leaves) {
-			const view = leaf.view;
-			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
-				const targetWin = view.containerEl.ownerDocument.defaultView;
-				if (targetWin) {
-					setWindowSkipTaskbar(targetWin, skip);
-				}
+		for (const { targetWin } of this.stickyPopoutViews()) {
+			if (targetWin) {
+				setWindowSkipTaskbar(targetWin, skip);
 			}
 		}
 	}
@@ -346,17 +348,13 @@ export class StickyWindowManager {
 	 * 批量更新所有便笺窗口的中间格式工具栏显示状态 (极简模式实时生效)
 	 */
 	public updateAllNotesFormattingToolbar(hide: boolean) {
-		const leaves = this.app.workspace.getLeavesOfType('markdown');
-		for (const leaf of leaves) {
-			const view = leaf.view;
-			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
-				const toolbarEl = view.containerEl.querySelector('.evernote-sticky-toolbar');
-				if (toolbarEl) {
-					if (hide) {
-						toolbarEl.classList.add('hide-formatting');
-					} else {
-						toolbarEl.classList.remove('hide-formatting');
-					}
+		for (const { view } of this.stickyPopoutViews()) {
+			const toolbarEl = view.containerEl.querySelector('.evernote-sticky-toolbar');
+			if (toolbarEl) {
+				if (hide) {
+					toolbarEl.classList.add('hide-formatting');
+				} else {
+					toolbarEl.classList.remove('hide-formatting');
 				}
 			}
 		}
@@ -366,27 +364,18 @@ export class StickyWindowManager {
 	 * 批量同步更新所有已打开桌面便笺窗口的内容边距 (上下/左右间距实时生效)
 	 */
 	public updateAllNotesPadding(v: number, h: number) {
-		const leaves = this.app.workspace.getLeavesOfType('markdown');
-		for (const leaf of leaves) {
-			const view = leaf.view;
-			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
-				const targetWin = view.containerEl.ownerDocument.defaultView;
-				if (targetWin) {
-					targetWin.document.body.style.setProperty('--sticky-pad-v', `${v}px`);
-					targetWin.document.body.style.setProperty('--sticky-pad-h', `${h}px`);
-				}
-				const editorEl = view.contentEl.querySelector('.markdown-source-view');
-				editorEl?.classList.remove('is-readable-line-width');
-				view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
-				view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
+		for (const { view, targetWin } of this.stickyPopoutViews()) {
+			const editorEl = view.contentEl.querySelector('.markdown-source-view');
+			editorEl?.classList.remove('is-readable-line-width');
+			view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
+			view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
 
-				// 关键 API 手段：触发编辑器尺寸重新测量，清空旧的断行缓存，使文本立即按照最新边距重新断行
-				if (typeof (view as unknown as { onResize?: () => void }).onResize === 'function') {
-					(view as unknown as { onResize: () => void }).onResize();
-				}
-				if (targetWin && typeof targetWin.dispatchEvent === 'function') {
-					targetWin.dispatchEvent(new Event('resize'));
-				}
+			// 关键 API 手段：触发编辑器尺寸重新测量，清空旧的断行缓存，使文本立即按照最新边距重新断行
+			if (typeof (view as unknown as { onResize?: () => void }).onResize === 'function') {
+				(view as unknown as { onResize: () => void }).onResize();
+			}
+			if (targetWin && typeof targetWin.dispatchEvent === 'function') {
+				targetWin.dispatchEvent(new Event('resize'));
 			}
 		}
 	}
@@ -438,8 +427,7 @@ export class StickyWindowManager {
 	 * 插件卸载时安全清理所有已挂载便签的控制器与监听器 (消除 onunload 监听器残留与越界写盘)
 	 */
 	public cleanupAllStickyFeatures() {
-		const leaves = this.app.workspace.getLeavesOfType('markdown');
-		for (const leaf of leaves) {
+		for (const { leaf } of this.stickyPopoutViews()) {
 			const controller = this.activeStickyControllers.get(leaf);
 			if (controller) {
 				controller.abort();

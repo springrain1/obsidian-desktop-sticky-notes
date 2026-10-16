@@ -1,4 +1,4 @@
-import { win32Worker } from './win32-worker';
+import { sendWin32Command } from './win32-worker';
 
 /**
  * Electron 窗口操作辅助工具
@@ -9,7 +9,6 @@ interface ElectronWindow {
 	setSkipTaskbar?(this: void, skip: boolean): void;
 	getBounds?(this: void): { x: number; y: number; width: number; height: number };
 	setPosition?(this: void, x: number, y: number, animate?: boolean): void;
-	setSize?(this: void, width: number, height: number): void;
 	setContentSize?(this: void, width: number, height: number): void;
 	getNativeWindowHandle?(): Buffer;
 }
@@ -166,14 +165,6 @@ export function setWindowContentSize(targetWindow: Window, width: number, height
 			console.debug('[DesktopStickyNotes] setContentSize failed:', e);
 		}
 	}
-	if (bw && typeof bw.setSize === 'function') {
-		try {
-			bw.setSize(Math.round(width), Math.round(height));
-			return true;
-		} catch {
-			// 回退
-		}
-	}
 	try {
 		targetWindow.resizeTo(Math.round(width), Math.round(height));
 		return true;
@@ -211,9 +202,9 @@ export function setWindowWidgetMode(targetWindow: Window, enable: boolean): bool
 			bw.setAlwaysOnTop(false);
 			if (typeof bw.setSkipTaskbar === 'function') bw.setSkipTaskbar(true);
 		}
-		win32Worker.sendCommand('ATTACH', hwnd);
+		sendWin32Command('ATTACH', hwnd);
 	} else {
-		win32Worker.sendCommand('DETACH', hwnd);
+		sendWin32Command('DETACH', hwnd);
 	}
 	return true;
 }
@@ -225,6 +216,6 @@ export function pushWindowToBottom(targetWindow: Window): void {
 	if (process.platform !== 'win32') return;
 	const hwnd = getNativeWindowHwnd(targetWindow);
 	if (hwnd) {
-		win32Worker.sendCommand('BOTTOM', hwnd);
+		sendWin32Command('BOTTOM', hwnd);
 	}
 }

@@ -154,8 +154,7 @@
 }
 
 /* 桌面小组件态：消除扩散大阴影，平整贴合桌面 */
-.evernote-sticky-card.is-widget,
-.evernote-sticky-card.is-docked {
+.evernote-sticky-card.is-widget {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--sticky-border-color) !important;
 }
 
@@ -315,8 +314,6 @@ body.is-evernote-sticky-window .view-content {
 	padding-right: 0 !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
-	word-break: break-word !important;
-	overflow-wrap: anywhere !important;
 }
 
 .is-evernote-sticky-window .cm-line:first-child {

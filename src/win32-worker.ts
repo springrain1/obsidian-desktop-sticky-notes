@@ -1,54 +1,11 @@
+import type { ChildProcess } from 'child_process';
+
 /**
- * Win32 桌面小组件守护进程 (stdin 管道化，零重复启动开销)
+ * Win32 桌面小组件守护进程 (stdin 管道化，惰性初始化，零黑框)
  */
+let workerProc: ChildProcess | null = null;
 
-interface ChildProcessLike {
-	stdin?: {
-		writable?: boolean;
-		write: (data: string) => boolean;
-		end: () => void;
-	} | null;
-	stdout?: {
-		on: (event: string, listener: (data: Buffer) => void) => void;
-	} | null;
-	on: (event: string, listener: () => void) => void;
-	kill: () => void;
-}
-
-interface ChildProcessModule {
-	spawn: (
-		command: string,
-		args: string[],
-		options: {
-			windowsHide?: boolean;
-			stdio?: (string | null)[];
-		},
-	) => ChildProcessLike;
-}
-
-class Win32WidgetWorker {
-	private static instance: Win32WidgetWorker;
-	private process: ChildProcessLike | null = null;
-	private isReady = false;
-
-	private constructor() {
-		if (process.platform === 'win32') {
-			this.initWorker();
-		}
-	}
-
-	public static getInstance(): Win32WidgetWorker {
-		if (!Win32WidgetWorker.instance) {
-			Win32WidgetWorker.instance = new Win32WidgetWorker();
-		}
-		return Win32WidgetWorker.instance;
-	}
-
-	private initWorker() {
-		if (process.platform !== 'win32') return;
-
-		// C# 核心 P/Invoke 定义
-		const csharpCode = `
+const CSHARP_CODE = `
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -59,12 +16,9 @@ public class Win32Bridge {
     public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
     [DllImport("user32.dll")]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
     public static void Run() {
         IntPtr progman = FindWindow("Progman", "Program Manager");
-        Console.WriteLine("READY");
         string line;
         while ((line = Console.ReadLine()) != null) {
             try {
@@ -88,74 +42,60 @@ public class Win32Bridge {
     }
 }
 `;
-		// PowerShell 包装脚本：编译后直接进入常驻循环
-		const psScript = `
-$code = @'
-${csharpCode}
-'@
-Add-Type -TypeDefinition $code
-[Win32Bridge]::Run()
-`;
-		// 采用 UTF-16LE + Base64 编码传递，免疫命令行换行与双引号截断
-		const encoded = Buffer.from(psScript, 'utf16le').toString('base64');
-		const win = window as unknown as { require?: (module: string) => unknown };
-		const electronApp = (typeof win.require === 'function' ? win.require('child_process') : null) as ChildProcessModule | null;
 
-		if (!electronApp || typeof electronApp.spawn !== 'function') {
-			return;
-		}
+function ensureWorker() {
+	if (workerProc && workerProc.stdin && workerProc.stdin.writable) return;
+	if (process.platform !== 'win32') return;
 
-		try {
-			this.process = electronApp.spawn('powershell.exe', [
-				'-NoProfile',
-				'-NonInteractive',
-				'-EncodedCommand',
-				encoded,
-			], {
-				windowsHide: true,
-				stdio: ['pipe', 'pipe', 'ignore'],
-			});
+	const psScript = `\n$code = @'\n${CSHARP_CODE}\n'@\nAdd-Type -TypeDefinition $code\n[Win32Bridge]::Run()\n`;
+	const encoded = Buffer.from(psScript, 'utf16le').toString('base64');
+	const win = window as unknown as { require?: (module: string) => unknown };
+	const cp = (typeof win.require === 'function' ? win.require('child_process') : null) as typeof import('child_process') | null;
 
-			this.process.stdout?.on('data', (data: Buffer) => {
-				if (data.toString().includes('READY')) {
-					this.isReady = true;
-				}
-			});
+	if (!cp || typeof cp.spawn !== 'function') return;
 
-			this.process.on('exit', () => {
-				this.isReady = false;
-				this.process = null;
-			});
-		} catch (e) {
-			console.warn('[DesktopStickies] Failed to spawn Win32 worker:', e);
-		}
-	}
+	try {
+		workerProc = cp.spawn('powershell.exe', [
+			'-NoProfile',
+			'-NonInteractive',
+			'-EncodedCommand',
+			encoded,
+		], {
+			windowsHide: true,
+			stdio: ['pipe', 'ignore', 'ignore'],
+		});
 
-	public sendCommand(cmd: 'ATTACH' | 'DETACH' | 'BOTTOM', hwndHex: string) {
-		if (process.platform !== 'win32') return;
-
-		if (!this.process || !this.process.stdin || !this.process.stdin.writable) {
-			// 异常退出时自愈重启
-			this.initWorker();
-		}
-		try {
-			this.process?.stdin?.write(`${cmd} ${hwndHex}\n`);
-		} catch (e) {
-			console.warn('[DesktopStickies] Failed to write to Win32 worker:', e);
-		}
-	}
-
-	public destroy() {
-		if (this.process) {
-			try {
-				this.process.stdin?.end();
-				this.process.kill();
-			} catch {
-				// 容错
-			}
-			this.process = null;
-		}
+		workerProc.on('exit', () => {
+			workerProc = null;
+		});
+	} catch (e) {
+		console.warn('[DesktopStickies] Failed to spawn Win32 worker:', e);
 	}
 }
 
-export const win32Worker = Win32WidgetWorker.getInstance();
+/**
+ * 向 Win32 守护进程发送管道指令 (首次调用时惰性冷启动)
+ */
+export function sendWin32Command(cmd: 'ATTACH' | 'DETACH' | 'BOTTOM', hwndHex: string) {
+	if (process.platform !== 'win32') return;
+	ensureWorker();
+	try {
+		workerProc?.stdin?.write(`${cmd} ${hwndHex}\n`);
+	} catch (e) {
+		console.warn('[DesktopStickies] Failed to write to Win32 worker:', e);
+	}
+}
+
+/**
+ * 插件卸载或退出时终结守护进程
+ */
+export function destroyWin32Worker() {
+	if (workerProc) {
+		try {
+			workerProc.kill();
+		} catch {
+			// 容错
+		}
+		workerProc = null;
+	}
+}

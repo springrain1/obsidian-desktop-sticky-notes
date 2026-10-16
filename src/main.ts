@@ -5,12 +5,13 @@ import {
 } from './types';
 import { DesktopStickySettingTab } from './settings';
 import { StickyWindowManager } from './window-manager';
-import { win32Worker } from './win32-worker';
+import { destroyWin32Worker } from './win32-worker';
 import { t } from './i18n';
 
 export default class DesktopStickyNotesPlugin extends Plugin {
 	settings!: StickyPluginSettings;
 	windowManager!: StickyWindowManager;
+	private layoutDebounceTimer: number | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -85,11 +86,10 @@ export default class DesktopStickyNotesPlugin extends Plugin {
 		});
 
 		// 9. 监听工作区布局变化 (带 300ms 防抖，严格遵守 AGENTS.md 规范防范高频扫描)
-		let layoutDebounceTimer: number | null = null;
 		this.registerEvent(
 			this.app.workspace.on('layout-change', () => {
-				if (layoutDebounceTimer !== null) window.clearTimeout(layoutDebounceTimer);
-				layoutDebounceTimer = window.setTimeout(() => {
+				if (this.layoutDebounceTimer !== null) window.clearTimeout(this.layoutDebounceTimer);
+				this.layoutDebounceTimer = window.setTimeout(() => {
 					this.windowManager.rehydrateExistingStickyNotes();
 				}, 300);
 			}),
@@ -97,11 +97,16 @@ export default class DesktopStickyNotesPlugin extends Plugin {
 	}
 
 	onunload() {
+		if (this.layoutDebounceTimer !== null) {
+			window.clearTimeout(this.layoutDebounceTimer);
+			this.layoutDebounceTimer = null;
+		}
+
 		// 彻底清理并中断所有便签上的监听器控制器，消除卸载后继续写盘风险
 		this.windowManager.cleanupAllStickyFeatures();
 
 		// 安全释放并退出 Win32 常驻守护子进程
-		win32Worker.destroy();
+		destroyWin32Worker();
 
 		// 移除便笺独立窗口的自定义样式标记
 		for (const leaf of this.app.workspace.getLeavesOfType('markdown')) {
