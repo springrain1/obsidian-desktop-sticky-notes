@@ -1,76 +1,112 @@
 # 桌面便笺 (Desktop Stickies for Obsidian)
 
+[中文文档](#-桌面便笺-desktop-stickies) | [English Documentation](#-desktop-stickies-for-obsidian)
+
 [![Obsidian Plugin](https://img.shields.io/badge/Obsidian-Plugin-blue?logo=obsidian)](https://obsidian.md)
+[![Release](https://img.shields.io/badge/Release-v1.3.0-green.svg)](https://github.com/springrain1/obsidian-desktop-sticky-notes/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Desktop Stickies** 是一款专为 Obsidian 打造的拟物化独立桌面便笺插件。融合**桌面悬浮纸质便笺**与 **Obsidian 原生 Live Preview 实时预览引擎**，既保留了经典便笺的极简即时手感，又让所有灵感数据无缝沉淀在你的本地 Markdown 知识库中。
+---
+
+## 🇨🇳 桌面便笺 (Desktop Stickies)
+
+**Desktop Stickies** 是一款专为 Obsidian 打造的现代化拟物风独立桌面便笺插件。融合**经典纸质桌面便笺交互**与 **Obsidian 原生 Live Preview 实时预览引擎**，既保留了桌面便笺即开即写、常驻桌面的轻量手感，又让所有灵感数据无缝沉淀在本地 Markdown 知识库中。
+
+### 🌟 核心特性 (v1.3.0)
+
+- ⚓ **真·桌面小组件模式 (Desktop Widget)**：
+  - 升级三态物理空间流转：`普通浮动 (Float)` ➔ `窗口置顶 (Pin)` ➔ `桌面小组件 (Widget)` ➔ `普通浮动 (Float)`；
+  - 挂载系统桌面宿主（Progman），**按 `Win+D`（显示桌面）时所有软件最小化，便签稳稳留在壁纸上常驻**；
+  - 保持完整 CodeMirror 编辑能力，在桌面上直接打字打勾；写完鼠标切回其他软件，便签自动平滑沉底（`HWND_BOTTOM`），绝不遮挡后续工作。
+- 📐 **极窄边框与间距自由调节**：
+  - 设置面板提供「正文上下间距（0~30px）」与「正文左右间距（0~30px）」滑块；
+  - 调为 `0` 时，通过 API 级拔除行宽限制并清空滚动槽位，**文字真正从最左侧第 0 像素贴边延展至最右侧边缘，实现极限窄边框**；
+  - 滑块拖拽实时无刷新广播响应，即拖即见效。
+- 🤫 **关闭便签绝对零打扰**：
+  - 随手点击右上角关闭（✕）或删除时，直接关闭独立宿主窗口，**彻底解决此前因焦点补偿导致庞大的 Obsidian 主窗口突然弹跳置顶打扰工作的顽疾**。
+- 🎨 **暗夜极客模式 (Charcoal) 语法全兼容**：
+  - **光标 2px 耀眼亮白**：光标与输入点全链路绑定明亮文字色，告别深黑背景下光标隐形消失；
+  - **动态激活深色渲染管线**：切换暗色便签时自动切换宿主窗口的主题上下文（`theme-dark`）；
+  - **全套排版语法高对比度呈现**：表格（表头与单元格）、Callout 标注块（含中性灰 quote 类型）、未创建内部双链（`is-unresolved`）、引用块、LaTeX 数学公式、代码块全部赋予明亮高对比度呈现，告别“黑底写黑字”。
+- 🪟 **中间格式工具栏隐藏开关**：
+  - 设置面板提供开关，一键隐藏中间格式化按钮；隐藏后顶部整条大面积区域直接作为拖拽抓手，随手一抓即可移动便签。
+- 💾 **历史坐标与尺寸 1:1 绝对精准记忆**：
+  - 二次定位强力注入内容尺寸，用户自定义的历史高度（如 250px）在下一次打开时 100% 绝对 1:1 复原；
+  - 尺寸采集严格基于内容区，彻底消除开合循环外边框膨胀；
+  - 监听原生 Electron `move` 事件，真正做到拖拽松手 500ms 静默存盘；外接副屏拔除后自动拉回主屏视野。
+- 🧹 **任务栏防拥挤 (Skip Taskbar)**：便签小窗不占用系统任务栏位置，仅保留一个主程序图标，保持桌面清爽。
+- 🗂️ **桌面便笺管理器 (Notes Hub)**：主库一键唤出便笺管理器，瀑布流卡片检索所有历史便笺，支持关键字即时过滤与重新唤醒。
+- 🌈 **7 款经典拟物纸质皮肤**：经典黄、薄荷绿、樱花粉、晴空蓝、香芋紫、简约白，以及专为深色模式打造的暗夜碳黑。
+- 🔄 **收回收纳至主库**：提供「恢复为主窗口」按钮，一键将便签收回到 Obsidian 主库的 Tab 标签页。
 
 ---
 
-## 🌟 核心特性
+## 🇺🇸 Desktop Stickies for Obsidian
 
-- 🪟 **原生桌面独立悬浮小窗**：脱离主库网格限制，通过独立小窗悬浮在桌面上，随手记录与参考；
-- 📌 **真·桌面置顶 (Always on Top)**：基于底层 Electron 窗口能力，一键让便笺常驻在所有软件窗口最上层；
-- 🧹 **任务栏防拥挤 (Skip Taskbar)**：便笺小窗自动从 Windows 任务栏隐藏，任务栏永远只保留 1 个主程序图标，保持桌面清爽；
-- 🗂️ **桌面便笺管理器 (Notes Hub)**：主库一键唤出便笺管理器，瀑布流卡片检索所有历史便笺，支持关键字即时过滤与重新唤醒；
-- 🎨 **7 款经典与暗夜便笺纸皮肤**：经典黄、薄荷绿、樱花粉、晴空蓝、香芋紫、简约白，新增**暗夜碳黑 (Charcoal)** 专为深色模式与夜间护眼打造；
-- 🫧 **工具栏智能居中与自动隐藏**：富文本工具栏绝对水平居中；鼠标移出便笺时工具栏自动平滑隐藏，移入时优雅浮现，提供极致沉浸感；
-- ⚡ **原生 Markdown 实时预览 (Live Preview)**：直接输入 Markdown 语法，标题、列表、复选框即打即显、所见即所得；
-- 🛠️ **全套富文本快捷工具栏**：
-  - **待办清单 (Checklist)**：插入/切换待办，支持多选内容批量打勾与取消，光标自动定位；
-  - **无序列表与有序列表**：支持多选批量转换，有序列表自动按序号递增编号；
-  - **删除线**：选中文本一键划线包裹；
-  - **插入本地图片**：点击直接拉起资源管理器选图，自动存入 Vault 并生成标准引用；
-  - **标题与 YAML 一键显隐**：默认隐藏顶栏多余标题和属性面板，提供独立按钮随需展开；
-- 🗑️ **删除与关闭生命周期分离**：工具栏提供「移入废纸篓」按钮，明确区分收起小窗与安全删除笔记；
-- 🖥️ **屏幕边界越界保护**：拔插外接显示器或切换多屏时，自动将漂移的便笺拉回当前屏幕可视区域；
-- 🌐 **原生中英文国际化 (i18n)**：自动识别 Obsidian 系统语言，命令、设置、工具栏与提示无缝切换中文/英文；
-- 💾 **100% 本地 Markdown 存储**：自动持久化为本地 `.md` 文件，位置、尺寸、皮肤与置顶状态记录于 YAML Frontmatter 中，多端同步无障碍。
+**Desktop Stickies** is a skeuomorphic desktop sticky notes plugin designed specifically for Obsidian. Combining the tactile immediacy of classic desktop post-it notes with **Obsidian's native Live Preview engine**, it keeps all your thoughts directly visible on your desktop while saving everything neatly into your local Markdown vault.
+
+### 🌟 Key Features (v1.3.0)
+
+- ⚓ **True Desktop Widget Mode**:
+  - Three-state physical Z-order cycling: `Floating` ➔ `Pinned (Topmost)` ➔ `Desktop Widget` ➔ `Floating`;
+  - Embedded into the Windows desktop shell (Progman), **immune to `Win+D` (Show Desktop) minimizing, remaining permanently pinned to your wallpaper**;
+  - Full CodeMirror 6 markdown editing on desktop; automatically resets to the bottom layer (`HWND_BOTTOM`) on blur, never getting in the way of other apps.
+- 📐 **Slim Borders & Customizable Padding**:
+  - Settings slider for vertical padding (0~30px) and horizontal padding (0~30px);
+  - When set to `0`, removes line-width limits and scrollbar gutters, allowing text to seamlessly touch the very edge for an ultra-compact look;
+  - Instant live broadcast preview when adjusting sliders.
+- 🤫 **Distraction-Free Window Closing**:
+  - Closing a sticky note directly closes the popup window without activating Obsidian's main window, eliminating unwanted window popups.
+- 🎨 **Full Charcoal Dark Theme Compatibility**:
+  - **2px Bright White Caret**: Cursor is clearly visible against dark backgrounds without needing text selection;
+  - **Native Dark Pipeline Activation**: Automatically switches window context to `theme-dark`;
+  - **Comprehensive Syntax Compatibility**: Tables (headers & cells), Callouts (including neutral quote style), unresolved internal links (`is-unresolved`), blockquotes, LaTeX math, and code blocks all render with crisp contrast.
+- 🪟 **Hide Center Formatting Toolbar**:
+  - Optional toggle to hide formatting buttons in the center of the toolbar, creating a large, seamless drag-handle area for effortless repositioning.
+- 💾 **Precise Bounds & Dimension Persistence**:
+  - Window dimensions are restored 1:1 without frame-expansion drift;
+  - Native Electron `move` listener records coordinates silently 500ms after dragging stops;
+  - Disconnected secondary monitor auto-recovery keeps notes safely visible.
+- 🧹 **Anti-Clutter Taskbar Skipping**: Sticky note windows are hidden from the OS taskbar, leaving only your main Obsidian icon.
+- 🗂️ **Sticky Notes Hub**: Search, filter, and resurrect archived or closed sticky notes in a unified card grid.
+- 🌈 **7 Skeuomorphic Paper Skins**: Classic Yellow, Mint Green, Sakura Pink, Sky Blue, Taro Purple, Minimal White, and Charcoal Dark.
+- 🔄 **Restore to Main Window**: One-click command to dock floating notes back into main vault editor tabs.
 
 ---
 
-## 🚀 快速上手
+## 🚀 快速上手 / Quick Start
 
-### 1. 手动安装
-1. 下载项目构建产物 `main.js`、`styles.css`、`manifest.json`；
-2. 在你的 Obsidian 库目录中，找到 `.obsidian/plugins/`，新建文件夹 `desktop-sticky-notes`；
+### 1. 手动安装 (Manual Installation)
+1. 下载 Release 页面发布的 `main.js`、`styles.css`、`manifest.json`；
+2. 在您的 Obsidian 库目录中，进入 `.obsidian/plugins/`，新建文件夹 `desktop-stickies`；
 3. 将上述三个文件拷贝到该文件夹中；
-4. 在 Obsidian 的「设置」➔「第三方插件」中刷新并启用 **Desktop Sticky Notes**。
+4. 在 Obsidian 的「设置」➔「第三方插件」中刷新并启用 **Desktop Stickies**。
 
-### 2. 使用方法
-- **新建便笺**：点击左侧功能栏（Ribbon）的便签纸图标，或按 `Ctrl+P` 输入 `新建桌面便笺`；
-- **打开便笺管理器**：点击左侧功能栏的网格图标，或按 `Ctrl+P` 输入 `打开桌面便笺管理器`；
-- **将现有笔记作为便笺打开**：在主库文件列表右键任意 `.md` 笔记，选择「以桌面便笺打开 (Open as desktop sticky note)」；
-- **关闭便笺**：点击便笺右上角的 `×`，内容已实时自动保存，窗口安全关闭；
-- **删除便笺**：点击便笺右上角的 `🗑️` 垃圾桶图标，将笔记移入废纸篓。
-
----
-
-### 3. 工具栏快捷功能
-- **便笺置顶 (Pin)**：点击图钉图标，便笺常驻在桌面最上层（置顶时图钉高亮变红）；
-- **换肤调色盘**：内置 7 种经典拟物底色（含暗夜碳黑），即点即切；
-- **待办清单 (Checklist)**：快速插入 `- [ ] `，支持多选多行批量打勾或取消；
-- **编号与列表**：支持多选自动递增编号（1. 2. 3...）；
-- **插入图片**：点击直接拉起资源管理器选图，自动存入附件并生成标准引用；
-- **标题与 YAML 显隐**：一键切换笔记大标题与属性面板，按需展开。
+### 2. 常用操作 (Basic Usage)
+- **新建便笺**：点击左侧 Ribbon 的便签纸图标，或按 `Ctrl+P` 输入 `新建桌面便笺`；
+- **打开管理器**：点击左侧 Ribbon 的网格图标，或按 `Ctrl+P` 输入 `打开桌面便笺管理器`；
+- **以便笺打开现有笔记**：右键任意笔记，选择「以桌面便笺打开」；
+- **切换形态**：点击工具栏左侧的 📌 按钮，在普通浮动、窗口置顶、桌面小组件之间自由循环；
+- **关闭便笺**：点击便笺右上角的 `×`，内容已实时落盘，窗口自然退出且不打扰前台工作。
 
 ---
 
-## 🛠️ 本地开发与构建
+## 🛠️ 本地构建 / Development
 
 ```bash
 # 安装依赖
 npm install
 
-# 生产环境打包构建
+# 生产编译
 npm run build
 
-# 代码风格与规范检查
+# 规范检查
 npm run lint
 ```
 
 ---
 
-## 📄 开源许可
+## 📄 开源许可 / License
 
 本项目遵循 [MIT License](LICENSE) 许可开源。
+Copyright (c) 2025-2026 springrain.
