@@ -248,17 +248,19 @@ body.is-evernote-sticky-window .view-content {
 	margin-top: 0 !important;
 }
 
-/* 彻底消除正文距顶部工具栏过大的空白间距 */
+/* 彻底消除正文距顶部工具栏过大的空白间距，并打破小窗可读行宽居中限制 */
 .is-evernote-sticky-window .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6.is-readable-line-width .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6 .cm-sizer {
-	padding-top: 4px !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding-top: var(--sticky-pad-v, 4px) !important;
 	margin-top: 0 !important;
 	min-height: auto !important;
 }
 
 .is-evernote-sticky-window .cm-content {
-	padding: 4px 12px 20px 12px !important;
+	padding: var(--sticky-pad-v, 4px) var(--sticky-pad-h, 12px) 20px var(--sticky-pad-h, 12px) !important;
 	font-size: 14px !important;
 	line-height: 1.55 !important;
 }

@@ -139,5 +139,41 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 						this.plugin.windowManager.updateAllNotesFormattingToolbar(val);
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName(t('settingPaddingVertical'))
+			.setDesc(t('settingPaddingVerticalDesc'))
+			.addSlider((slider) =>
+				slider
+					.setLimits(0, 30, 1)
+					.setValue(this.plugin.settings.paddingVertical)
+					.setDynamicTooltip()
+					.onChange(async (val) => {
+						this.plugin.settings.paddingVertical = val;
+						await this.plugin.saveSettings();
+						this.plugin.windowManager.updateAllNotesPadding(
+							val,
+							this.plugin.settings.paddingHorizontal,
+						);
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName(t('settingPaddingHorizontal'))
+			.setDesc(t('settingPaddingHorizontalDesc'))
+			.addSlider((slider) =>
+				slider
+					.setLimits(0, 30, 1)
+					.setValue(this.plugin.settings.paddingHorizontal)
+					.setDynamicTooltip()
+					.onChange(async (val) => {
+						this.plugin.settings.paddingHorizontal = val;
+						await this.plugin.saveSettings();
+						this.plugin.windowManager.updateAllNotesPadding(
+							this.plugin.settings.paddingVertical,
+							val,
+						);
+					}),
+			);
 	}
 }

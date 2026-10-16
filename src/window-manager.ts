@@ -175,6 +175,8 @@ export class StickyWindowManager {
 		// 注入桌面便笺窗口专属样式标记（顶栏标签由 styles.css 的 display:none !important 声明式隐藏）
 		targetWin.document.body.classList.add('is-evernote-sticky-window');
 		view.containerEl.classList.add('evernote-sticky-card');
+		view.containerEl.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
+		view.containerEl.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
 
 		// 清理旧工具栏，防止重复注入
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
@@ -321,6 +323,20 @@ export class StickyWindowManager {
 						toolbarEl.classList.remove('hide-formatting');
 					}
 				}
+			}
+		}
+	}
+
+	/**
+	 * 批量同步更新所有已打开桌面便笺窗口的内容边距 (上下/左右间距实时生效)
+	 */
+	public updateAllNotesPadding(v: number, h: number) {
+		const leaves = this.app.workspace.getLeavesOfType('markdown');
+		for (const leaf of leaves) {
+			const view = leaf.view;
+			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
+				view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
+				view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
 			}
 		}
 	}

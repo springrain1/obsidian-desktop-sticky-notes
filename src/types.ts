@@ -101,6 +101,8 @@ export interface StickyPluginSettings {
 	hideFromTaskbar: boolean;
 	pinCycleMode: 'three-state' | 'two-state';
 	hideFormattingToolbar: boolean;
+	paddingVertical: number;
+	paddingHorizontal: number;
 }
 
 export const DEFAULT_SETTINGS: StickyPluginSettings = {
@@ -113,4 +115,6 @@ export const DEFAULT_SETTINGS: StickyPluginSettings = {
 	hideFromTaskbar: true,
 	pinCycleMode: 'three-state',
 	hideFormattingToolbar: false,
+	paddingVertical: 4,
+	paddingHorizontal: 12,
 };

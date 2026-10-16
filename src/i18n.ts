@@ -92,6 +92,10 @@ const zh = {
 	settingPinModeTwo: '经典二态 (仅 浮动 ➔ 置顶)',
 	settingHideFormattingToolbar: '隐藏中间格式工具栏',
 	settingHideFormattingToolbarDesc: '隐藏工具栏中间的待办、列表、删除线、图片等格式按钮，只保留两侧的核心操作，界面更加极简通透',
+	settingPaddingVertical: '正文上下间距 (px)',
+	settingPaddingVerticalDesc: '调整便签正文顶部与底部的内边距留白 (0 ~ 30px，默认 4px)',
+	settingPaddingHorizontal: '正文左右间距 (px)',
+	settingPaddingHorizontalDesc: '调整便签正文左侧与右侧的内边距留白 (0 ~ 30px，默认 12px，调小可实现极窄边框)',
 };
 
 const en: typeof zh = {
@@ -180,6 +184,10 @@ const en: typeof zh = {
 	settingPinModeTwo: 'Classic two-state (Floating ➔ Pinned only)',
 	settingHideFormattingToolbar: 'Hide center formatting toolbar',
 	settingHideFormattingToolbarDesc: 'Hide checklist, list, formatting, and image buttons in the center of the toolbar for a minimalist layout',
+	settingPaddingVertical: 'Content vertical padding (px)',
+	settingPaddingVerticalDesc: 'Top and bottom margin spacing inside sticky notes (0 ~ 30px, default 4px)',
+	settingPaddingHorizontal: 'Content horizontal padding (px)',
+	settingPaddingHorizontalDesc: 'Left and right margin spacing inside sticky notes (0 ~ 30px, default 12px, decrease for slim borders)',
 };
 
 export type TranslationKey = keyof typeof zh;
