@@ -188,6 +188,9 @@ export class StickyWindowManager {
 
 		// 注入桌面便笺窗口专属样式标记（顶栏标签由 styles.css 的 display:none !important 声明式隐藏）
 		targetWin.document.body.classList.add('is-evernote-sticky-window');
+		targetWin.document.body.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
+		targetWin.document.body.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
+		targetWin.document.body.style.setProperty('--file-margins', `${this.plugin.settings.paddingHorizontal}px`);
 		view.containerEl.classList.add('evernote-sticky-card');
 		view.containerEl.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
 		view.containerEl.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
@@ -363,6 +366,12 @@ export class StickyWindowManager {
 		for (const leaf of leaves) {
 			const view = leaf.view;
 			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
+				const targetWin = view.containerEl.ownerDocument.defaultView;
+				if (targetWin) {
+					targetWin.document.body.style.setProperty('--sticky-pad-v', `${v}px`);
+					targetWin.document.body.style.setProperty('--sticky-pad-h', `${h}px`);
+					targetWin.document.body.style.setProperty('--file-margins', `${h}px`);
+				}
 				view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
 				view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
 			}

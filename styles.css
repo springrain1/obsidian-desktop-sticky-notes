@@ -248,13 +248,18 @@ body.is-evernote-sticky-window .view-content {
 	margin-top: 0 !important;
 }
 
-/* 彻底消除正文距顶部工具栏过大的空白间距，并打破小窗可读行宽居中限制 */
+/* 彻底消除正文距顶部工具栏过大的空白间距，并打破小窗可读行宽居中与外层 32px 留白限制 */
 .is-evernote-sticky-window .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6.is-readable-line-width .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6 .cm-sizer {
 	width: 100% !important;
 	max-width: 100% !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
 	padding-top: var(--sticky-pad-v, 4px) !important;
+	padding-bottom: var(--sticky-pad-v, 4px) !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 	margin-top: 0 !important;
 	min-height: auto !important;
 }
@@ -263,11 +268,25 @@ body.is-evernote-sticky-window .view-content {
 	padding: var(--sticky-pad-v, 4px) var(--sticky-pad-h, 12px) 20px var(--sticky-pad-h, 12px) !important;
 	font-size: 14px !important;
 	line-height: 1.55 !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
 }
 
 .is-evernote-sticky-window .cm-line:first-child {
 	margin-top: 0 !important;
 	padding-top: 0 !important;
+}
+
+/* 消除折叠元数据在顶部的残留占位 */
+.is-evernote-sticky-window .metadata-container.is-collapsed {
+	display: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	height: 0 !important;
+}
+
+.is-evernote-sticky-window .metadata-container {
+	margin-bottom: 0 !important;
 }
 
 /* 光标与选区颜色匹配 */
