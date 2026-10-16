@@ -419,11 +419,21 @@ body.is-evernote-sticky-window .view-content {
 	border-color: var(--sticky-border-color) !important;
 }
 
-/* 7. Callout 标注块 (全面适配暗色与亮色便签，正文防隐形) */
-.is-evernote-sticky-window .callout {
+/* 7. Callout 标注块 (全面适配编辑与阅读预览视图 .el-div / .markdown-rendered) */
+.is-evernote-sticky-window .callout,
+.is-evernote-sticky-window .el-div .callout,
+.is-evernote-sticky-window .markdown-rendered .callout {
 	background-color: rgba(var(--callout-color, 68, 138, 255), 0.12) !important;
 	border-color: rgba(var(--callout-color, 68, 138, 255), 0.35) !important;
 	color: var(--sticky-text-color) !important;
+}
+
+/* 消除 quote 类型在暗色模式下的死黑低对比度 */
+.is-evernote-sticky-window .callout[data-callout="quote"],
+.is-evernote-sticky-window .callout[data-callout="cite"] {
+	--callout-color: 148, 163, 184 !important;
+	background-color: rgba(148, 163, 184, 0.14) !important;
+	border-color: rgba(148, 163, 184, 0.35) !important;
 }
 
 .is-evernote-sticky-window .callout-title {
@@ -437,8 +447,16 @@ body.is-evernote-sticky-window .view-content {
 
 .is-evernote-sticky-window .callout-content,
 .is-evernote-sticky-window .callout-content p,
-.is-evernote-sticky-window .callout-content li {
+.is-evernote-sticky-window .callout-content li,
+.is-evernote-sticky-window .callout-content div {
 	color: var(--sticky-text-color) !important;
+}
+
+/* 未解析双链在暗色模式下的对比度高亮 (解决黑底下 is-unresolved 黑化隐形) */
+.is-evernote-sticky-window.theme-dark .internal-link.is-unresolved,
+.is-evernote-sticky-window .theme-dark .internal-link.is-unresolved {
+	color: #93C5FD !important;
+	opacity: 0.9 !important;
 }
 
 /* 8. 标题与加粗强调 (Headings & Bold) */

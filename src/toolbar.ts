@@ -691,6 +691,21 @@ export class DesktopStickyToolbar {
 		this.containerEl.style.setProperty('--sticky-text-color', color.text);
 		this.containerEl.style.setProperty('--caret-color', color.text);
 
+		// 动态切换宿主窗口的明暗主题上下文 (激活 Obsidian 原生深色/浅色渲染管线，解决 theme-light 强加深黑字的冲突)
+		if (this.targetWin && this.targetWin.document && this.targetWin.document.body) {
+			if (isDark) {
+				this.targetWin.document.body.classList.add('theme-dark');
+				this.targetWin.document.body.classList.remove('theme-light');
+				this.containerEl.classList.add('theme-dark');
+				this.containerEl.classList.remove('theme-light');
+			} else {
+				this.targetWin.document.body.classList.add('theme-light');
+				this.targetWin.document.body.classList.remove('theme-dark');
+				this.containerEl.classList.add('theme-light');
+				this.containerEl.classList.remove('theme-dark');
+			}
+		}
+
 		// 全量覆盖 Obsidian 官方排版语义变量 (覆盖主库亮色继承导致的深黑文字)
 		const textNormal = color.text;
 		const textMuted = isDark ? '#CBD5E1' : 'rgba(0, 0, 0, 0.65)';
