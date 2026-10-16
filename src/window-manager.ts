@@ -186,11 +186,15 @@ export class StickyWindowManager {
 			this.bwMoveCleanups.delete(leaf);
 		}
 
-		// 注入桌面便笺窗口专属样式标记（顶栏标签由 styles.css 的 display:none !important 声明式隐藏）
+		// 注入桌面便笺窗口专属样式标记与间距变量
 		targetWin.document.body.classList.add('is-evernote-sticky-window');
 		targetWin.document.body.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
 		targetWin.document.body.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
-		targetWin.document.body.style.setProperty('--file-margins', `${this.plugin.settings.paddingHorizontal}px`);
+
+		// 关键 API 手段：从 DOM 根源直接拔除 is-readable-line-width 类名，彻底解开小窗口的右侧行宽锁死
+		const editorEl = view.contentEl.querySelector('.markdown-source-view');
+		editorEl?.classList.remove('is-readable-line-width');
+
 		view.containerEl.classList.add('evernote-sticky-card');
 		view.containerEl.style.setProperty('--sticky-pad-v', `${this.plugin.settings.paddingVertical}px`);
 		view.containerEl.style.setProperty('--sticky-pad-h', `${this.plugin.settings.paddingHorizontal}px`);
@@ -370,8 +374,9 @@ export class StickyWindowManager {
 				if (targetWin) {
 					targetWin.document.body.style.setProperty('--sticky-pad-v', `${v}px`);
 					targetWin.document.body.style.setProperty('--sticky-pad-h', `${h}px`);
-					targetWin.document.body.style.setProperty('--file-margins', `${h}px`);
 				}
+				const editorEl = view.contentEl.querySelector('.markdown-source-view');
+				editorEl?.classList.remove('is-readable-line-width');
 				view.containerEl.style.setProperty('--sticky-pad-v', `${v}px`);
 				view.containerEl.style.setProperty('--sticky-pad-h', `${h}px`);
 			}
