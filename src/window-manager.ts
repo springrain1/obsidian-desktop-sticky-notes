@@ -9,7 +9,12 @@ import { StickyNoteMeta } from './types';
 import type DesktopStickyNotesPlugin from './main';
 import { DesktopStickyToolbar } from './toolbar';
 import { StickyNotesHubModal } from './hub-modal';
-import { setWindowSkipTaskbar, getCurrentWindowBounds, setWindowPosition } from './electron-helper';
+import {
+	setWindowSkipTaskbar,
+	getCurrentWindowBounds,
+	setWindowPosition,
+	getTargetBrowserWindow,
+} from './electron-helper';
 import { t } from './i18n';
 
 export class StickyWindowManager {
@@ -187,15 +192,56 @@ export class StickyWindowManager {
 		targetWin.addEventListener('resize', onBoundsChange, { signal: abortController.signal });
 		targetWin.addEventListener('blur', onBoundsChange, { signal: abortController.signal });
 
+		// 原生 Electron 窗口拖拽 move 事件监听 (实现真正的拖拽松手即持久化，消除 R1 隐患)
+		const bw = getTargetBrowserWindow(targetWin);
+		const onBwMove = () => onBoundsChange();
+		if (bw && typeof (bw as unknown as Record<string, unknown>).on === 'function') {
+			try {
+				(bw as unknown as { on: (event: string, listener: () => void) => void }).on('move', onBwMove);
+			} catch {
+				// 跨进程安全容错
+			}
+		}
+
 		// 当 leaf 销毁或关闭时彻底取消监听
 		targetWin.addEventListener(
 			'pagehide',
 			() => {
 				abortController.abort();
+				if (bw && typeof (bw as unknown as Record<string, unknown>).removeListener === 'function') {
+					try {
+						(bw as unknown as { removeListener: (event: string, listener: () => void) => void }).removeListener('move', onBwMove);
+					} catch {
+						// 清理容错
+					}
+				}
 				void this.persistWindowBounds(file, targetWin);
 			},
 			{ once: true },
 		);
+	}
+
+	/**
+	 * 自动扫描并重新渲染所有处于独立浮窗中的便笺 (解决关闭主窗口或启动恢复工作区后便笺退化为普通窗口的缺陷)
+	 */
+	public rehydrateExistingStickyNotes() {
+		const rootSplit = this.app.workspace.rootSplit;
+		const leaves = this.app.workspace.getLeavesOfType('markdown');
+		for (const leaf of leaves) {
+			if (leaf.getContainer() !== rootSplit) {
+				const view = leaf.view;
+				if (view instanceof MarkdownView && view.file) {
+					const cache = this.app.metadataCache.getFileCache(view.file);
+					const fm = cache?.frontmatter as StickyNoteMeta | undefined;
+					if (fm && (fm.is_sticky || fm.mode)) {
+						const hasToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
+						if (!hasToolbar) {
+							this.mountStickyFeatures(leaf, view.file);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -209,6 +255,26 @@ export class StickyWindowManager {
 				const targetWin = view.containerEl.ownerDocument.defaultView;
 				if (targetWin) {
 					setWindowSkipTaskbar(targetWin, skip);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 批量更新所有便笺窗口的中间格式工具栏显示状态 (极简模式实时生效)
+	 */
+	public updateAllNotesFormattingToolbar(hide: boolean) {
+		const leaves = this.app.workspace.getLeavesOfType('markdown');
+		for (const leaf of leaves) {
+			const view = leaf.view;
+			if (view instanceof MarkdownView && leaf.getContainer() !== this.app.workspace.rootSplit) {
+				const toolbarEl = view.containerEl.querySelector('.evernote-sticky-toolbar');
+				if (toolbarEl) {
+					if (hide) {
+						toolbarEl.classList.add('hide-formatting');
+					} else {
+						toolbarEl.classList.remove('hide-formatting');
+					}
 				}
 			}
 		}

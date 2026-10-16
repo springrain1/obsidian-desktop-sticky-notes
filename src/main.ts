@@ -77,6 +77,18 @@ export default class DesktopStickyNotesPlugin extends Plugin {
 
 		// 7. 注册设置面板
 		this.addSettingTab(new DesktopStickySettingTab(this.app, this));
+
+		// 8. 启动与工作区恢复自动接管：解决关闭主窗口或恢复上次会话时便笺退化为普通独立窗口的缺陷
+		this.app.workspace.onLayoutReady(() => {
+			this.windowManager.rehydrateExistingStickyNotes();
+		});
+
+		// 9. 监听工作区布局变化，动态重新注入未渲染便笺
+		this.registerEvent(
+			this.app.workspace.on('layout-change', () => {
+				this.windowManager.rehydrateExistingStickyNotes();
+			}),
+		);
 	}
 
 	onunload() {

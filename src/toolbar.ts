@@ -80,6 +80,9 @@ export class DesktopStickyToolbar {
 		this.toolbarEl = this.containerEl.createDiv({
 			cls: 'evernote-sticky-toolbar',
 		});
+		if (this.plugin.settings.hideFormattingToolbar) {
+			this.toolbarEl.classList.add('hide-formatting');
+		}
 
 		// 左侧组：新建便笺、置顶、换肤
 		const leftGroup = this.toolbarEl.createDiv({ cls: 'sticky-toolbar-group left' });

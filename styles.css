@@ -72,6 +72,11 @@
 	pointer-events: auto;
 }
 
+/* 隐藏中间格式工具栏设置：隐藏后腾出整个中央拖拽抓手区域 */
+.evernote-sticky-toolbar.hide-formatting .sticky-toolbar-group.center {
+	display: none !important;
+}
+
 .sticky-action-btn {
 	display: inline-flex;
 	align-items: center;

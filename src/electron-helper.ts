@@ -28,7 +28,7 @@ interface WindowWithElectron extends Window {
 /**
  * 提取当前目标窗口对应的 Electron 原生 BrowserWindow 实例
  */
-function getTargetBrowserWindow(targetWindow: Window): ElectronWindow | null {
+export function getTargetBrowserWindow(targetWindow: Window): ElectronWindow | null {
 	try {
 		const win = targetWindow as WindowWithElectron;
 		const req = win.require ?? (window as WindowWithElectron).require;

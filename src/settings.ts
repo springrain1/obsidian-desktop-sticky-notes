@@ -126,5 +126,18 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName(t('settingHideFormattingToolbar'))
+			.setDesc(t('settingHideFormattingToolbarDesc'))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.hideFormattingToolbar)
+					.onChange(async (val) => {
+						this.plugin.settings.hideFormattingToolbar = val;
+						await this.plugin.saveSettings();
+						this.plugin.windowManager.updateAllNotesFormattingToolbar(val);
+					}),
+			);
 	}
 }

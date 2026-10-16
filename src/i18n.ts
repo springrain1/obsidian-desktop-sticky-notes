@@ -90,6 +90,8 @@ const zh = {
 	settingPinModeDesc: '设置点击工具栏 Pin 图标时的状态流转行为',
 	settingPinModeThree: '三态流转 (浮动 ➔ 置顶 ➔ 桌面贴纸)',
 	settingPinModeTwo: '经典二态 (仅 浮动 ➔ 置顶)',
+	settingHideFormattingToolbar: '隐藏中间格式工具栏',
+	settingHideFormattingToolbarDesc: '隐藏工具栏中间的待办、列表、删除线、图片等格式按钮，只保留两侧的核心操作，界面更加极简通透',
 };
 
 const en: typeof zh = {
@@ -176,6 +178,8 @@ const en: typeof zh = {
 	settingPinModeDesc: 'State cycling behavior when clicking the toolbar Pin icon',
 	settingPinModeThree: 'Three-state (Floating ➔ Pinned ➔ Sticker)',
 	settingPinModeTwo: 'Classic two-state (Floating ➔ Pinned only)',
+	settingHideFormattingToolbar: 'Hide center formatting toolbar',
+	settingHideFormattingToolbarDesc: 'Hide checklist, list, formatting, and image buttons in the center of the toolbar for a minimalist layout',
 };
 
 export type TranslationKey = keyof typeof zh;
