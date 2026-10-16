@@ -202,6 +202,12 @@
 body.is-evernote-sticky-window {
 	background: transparent !important;
 	overflow: hidden !important;
+	--file-margins: 0px !important;
+	--file-line-width: 100% !important;
+	--line-width: 100% !important;
+	--line-width-adaptive: 100% !important;
+	--content-margin-inline: 0px !important;
+	--editor-padding: 0px !important;
 }
 
 /* 隐藏 Obsidian 默认的所有标签页头部、标题栏、状态栏 */
@@ -240,16 +246,32 @@ body.is-evernote-sticky-window .view-content {
 
 /* ================= CodeMirror 6 (Live Preview) 便签主题穿透与紧凑间距消除 ================= */
 .is-evernote-sticky-window .markdown-source-view.mod-cm6,
-.is-evernote-sticky-window .cm-editor,
+.is-evernote-sticky-window .cm-editor {
+	background-color: var(--sticky-bg-color) !important;
+	color: var(--sticky-text-color) !important;
+	font-family: inherit !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* 彻底清空滚动容器的左右 padding 与预留槽位 (消除右侧 30-40px 大红框空白) */
 .is-evernote-sticky-window .cm-scroller {
 	background-color: var(--sticky-bg-color) !important;
 	color: var(--sticky-text-color) !important;
 	font-family: inherit !important;
 	padding-top: 0 !important;
-	margin-top: 0 !important;
+	padding-bottom: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+	scrollbar-gutter: auto !important;
+	width: 100% !important;
+	max-width: 100% !important;
 }
 
-/* 彻底消除正文距顶部工具栏过大的空白间距，并打破小窗可读行宽居中与外层 32px 留白限制 */
+/* 彻底消除正文距顶部工具栏过大的空白间距，并打破小窗可读行宽居中与外层留白限制 */
 .is-evernote-sticky-window .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6.is-readable-line-width .cm-sizer,
 .is-evernote-sticky-window .markdown-source-view.mod-cm6 .cm-sizer {
@@ -265,10 +287,30 @@ body.is-evernote-sticky-window .view-content {
 	min-height: auto !important;
 }
 
+/* 消除内容容器包裹层的额外限制 */
+.is-evernote-sticky-window .cm-contentContainer {
+	width: 100% !important;
+	max-width: 100% !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
 .is-evernote-sticky-window .cm-content {
-	padding: var(--sticky-pad-v, 4px) var(--sticky-pad-h, 12px) 20px var(--sticky-pad-h, 12px) !important;
+	padding-top: var(--sticky-pad-v, 4px) !important;
+	padding-bottom: 20px !important;
+	padding-left: var(--sticky-pad-h, 12px) !important;
+	padding-right: var(--sticky-pad-h, 12px) !important;
 	font-size: 14px !important;
 	line-height: 1.55 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+.is-evernote-sticky-window .cm-line {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
 	width: 100% !important;
 	box-sizing: border-box !important;
 }
