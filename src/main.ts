@@ -83,15 +83,22 @@ export default class DesktopStickyNotesPlugin extends Plugin {
 			this.windowManager.rehydrateExistingStickyNotes();
 		});
 
-		// 9. 监听工作区布局变化，动态重新注入未渲染便笺
+		// 9. 监听工作区布局变化 (带 300ms 防抖，严格遵守 AGENTS.md 规范防范高频扫描)
+		let layoutDebounceTimer: number | null = null;
 		this.registerEvent(
 			this.app.workspace.on('layout-change', () => {
-				this.windowManager.rehydrateExistingStickyNotes();
+				if (layoutDebounceTimer !== null) window.clearTimeout(layoutDebounceTimer);
+				layoutDebounceTimer = window.setTimeout(() => {
+					this.windowManager.rehydrateExistingStickyNotes();
+				}, 300);
 			}),
 		);
 	}
 
 	onunload() {
+		// 彻底清理并中断所有便签上的监听器控制器，消除卸载后继续写盘风险
+		this.windowManager.cleanupAllStickyFeatures();
+
 		// 移除便笺独立窗口的自定义样式标记
 		for (const leaf of this.app.workspace.getLeavesOfType('markdown')) {
 			const targetWin = leaf.view.containerEl.ownerDocument.defaultView;

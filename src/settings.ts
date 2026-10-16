@@ -140,6 +140,14 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 					}),
 			);
 
+		let saveDebounceTimer: number | null = null;
+		const debouncedSaveSettings = () => {
+			if (saveDebounceTimer !== null) window.clearTimeout(saveDebounceTimer);
+			saveDebounceTimer = window.setTimeout(() => {
+				void this.plugin.saveSettings();
+			}, 400);
+		};
+
 		new Setting(containerEl)
 			.setName(t('settingPaddingVertical'))
 			.setDesc(t('settingPaddingVerticalDesc'))
@@ -148,9 +156,9 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 					.setLimits(0, 30, 1)
 					.setValue(this.plugin.settings.paddingVertical)
 					.setDynamicTooltip()
-					.onChange(async (val) => {
+					.onChange((val) => {
 						this.plugin.settings.paddingVertical = val;
-						await this.plugin.saveSettings();
+						debouncedSaveSettings();
 						this.plugin.windowManager.updateAllNotesPadding(
 							val,
 							this.plugin.settings.paddingHorizontal,
@@ -166,9 +174,9 @@ export class DesktopStickySettingTab extends PluginSettingTab {
 					.setLimits(0, 30, 1)
 					.setValue(this.plugin.settings.paddingHorizontal)
 					.setDynamicTooltip()
-					.onChange(async (val) => {
+					.onChange((val) => {
 						this.plugin.settings.paddingHorizontal = val;
-						await this.plugin.saveSettings();
+						debouncedSaveSettings();
 						this.plugin.windowManager.updateAllNotesPadding(
 							this.plugin.settings.paddingVertical,
 							val,

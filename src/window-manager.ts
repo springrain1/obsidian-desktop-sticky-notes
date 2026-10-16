@@ -21,6 +21,8 @@ import { t } from './i18n';
 export class StickyWindowManager {
 	private app: App;
 	private plugin: DesktopStickyNotesPlugin;
+	private activeStickyControllers = new WeakMap<WorkspaceLeaf, AbortController>();
+	private bwMoveCleanups = new WeakMap<WorkspaceLeaf, () => void>();
 
 	constructor(plugin: DesktopStickyNotesPlugin) {
 		this.plugin = plugin;
@@ -172,6 +174,18 @@ export class StickyWindowManager {
 		const targetWin = view.containerEl.ownerDocument.defaultView;
 		if (!targetWin) return;
 
+		// 1. 若该 leaf 之前已挂载过，先彻底 abort 旧 controller 并移除 Electron 监听器 (保证绝对幂等，杜绝监听器翻倍)
+		const prevController = this.activeStickyControllers.get(leaf);
+		if (prevController) {
+			prevController.abort();
+			this.activeStickyControllers.delete(leaf);
+		}
+		const prevBwCleanup = this.bwMoveCleanups.get(leaf);
+		if (prevBwCleanup) {
+			prevBwCleanup();
+			this.bwMoveCleanups.delete(leaf);
+		}
+
 		// 注入桌面便笺窗口专属样式标记（顶栏标签由 styles.css 的 display:none !important 声明式隐藏）
 		targetWin.document.body.classList.add('is-evernote-sticky-window');
 		view.containerEl.classList.add('evernote-sticky-card');
@@ -227,9 +241,17 @@ export class StickyWindowManager {
 
 		// 使用 AbortController 严格管理窗口 resize 与 move 监听器生命周期，杜绝内存泄漏
 		const abortController = new AbortController();
+		this.activeStickyControllers.set(leaf, abortController);
 		let boundsTimer: number | null = null;
 
+		// 抑制还原期抖动 (800ms 内不落盘，防止刚刚 setContentSize 激发的系统微调被误回写覆盖 frontmatter)
+		let isRestoring = true;
+		targetWin.setTimeout(() => {
+			isRestoring = false;
+		}, 800);
+
 		const onBoundsChange = () => {
+			if (isRestoring) return;
 			if (boundsTimer !== null) targetWin.clearTimeout(boundsTimer);
 			boundsTimer = targetWin.setTimeout(() => {
 				void this.persistWindowBounds(file, targetWin);
@@ -245,22 +267,28 @@ export class StickyWindowManager {
 		if (bw && typeof (bw as unknown as Record<string, unknown>).on === 'function') {
 			try {
 				(bw as unknown as { on: (event: string, listener: () => void) => void }).on('move', onBwMove);
+				this.bwMoveCleanups.set(leaf, () => {
+					try {
+						(bw as unknown as { removeListener: (event: string, listener: () => void) => void }).removeListener('move', onBwMove);
+					} catch {
+						// 容错
+					}
+				});
 			} catch {
 				// 跨进程安全容错
 			}
 		}
 
-		// 当 leaf 销毁或关闭时彻底取消监听
+		// 当 leaf 销毁或关闭时彻底取消监听并安全注销
 		targetWin.addEventListener(
 			'pagehide',
 			() => {
 				abortController.abort();
-				if (bw && typeof (bw as unknown as Record<string, unknown>).removeListener === 'function') {
-					try {
-						(bw as unknown as { removeListener: (event: string, listener: () => void) => void }).removeListener('move', onBwMove);
-					} catch {
-						// 清理容错
-					}
+				this.activeStickyControllers.delete(leaf);
+				const cleanup = this.bwMoveCleanups.get(leaf);
+				if (cleanup) {
+					cleanup();
+					this.bwMoveCleanups.delete(leaf);
 				}
 				void this.persistWindowBounds(file, targetWin);
 			},
@@ -381,6 +409,25 @@ export class StickyWindowManager {
 			});
 		} catch {
 			// 文件繁忙时静默忽略
+		}
+	}
+
+	/**
+	 * 插件卸载时安全清理所有已挂载便签的控制器与监听器 (消除 onunload 监听器残留与越界写盘)
+	 */
+	public cleanupAllStickyFeatures() {
+		const leaves = this.app.workspace.getLeavesOfType('markdown');
+		for (const leaf of leaves) {
+			const controller = this.activeStickyControllers.get(leaf);
+			if (controller) {
+				controller.abort();
+				this.activeStickyControllers.delete(leaf);
+			}
+			const cleanup = this.bwMoveCleanups.get(leaf);
+			if (cleanup) {
+				cleanup();
+				this.bwMoveCleanups.delete(leaf);
+			}
 		}
 	}
 }
