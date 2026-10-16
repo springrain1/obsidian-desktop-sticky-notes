@@ -13,6 +13,7 @@ import {
 	setWindowSkipTaskbar,
 	getCurrentWindowBounds,
 	setWindowPosition,
+	setWindowContentSize,
 	getTargetBrowserWindow,
 } from './electron-helper';
 import { t } from './i18n';
@@ -46,7 +47,9 @@ export class StickyWindowManager {
 
 		// 国际化命名前缀与时间戳命名
 		const now = new Date();
-		const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+		const pad = (n: number) => String(n).padStart(2, '0');
+		const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+		const createdAtFormatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 		const prefix = t('filePrefix');
 		const filePath = normalizePath(`${folderPath}/${prefix}_${dateStr}.md`);
 
@@ -57,7 +60,7 @@ export class StickyWindowManager {
 			`color: "${this.plugin.settings.defaultColor}"`,
 			`pinned: ${this.plugin.settings.defaultPinned}`,
 			`mode: "${defaultMode}"`,
-			`created_at: "${now.toISOString()}"`,
+			`created_at: "${createdAtFormatted}"`,
 			'---',
 			'',
 			'',
@@ -74,6 +77,39 @@ export class StickyWindowManager {
 	}
 
 	/**
+	 * 安全解析 Frontmatter 中的 bounds 属性 (兼顾对象结构与 JSON 字符串序列化)
+	 */
+	private parseBounds(raw: unknown): { x?: number; y?: number; width?: number; height?: number } | null {
+		if (!raw) return null;
+		let obj: unknown = raw;
+		if (typeof raw === 'string') {
+			try {
+				obj = JSON.parse(raw) as unknown;
+			} catch {
+				return null;
+			}
+		}
+		if (typeof obj === 'object' && obj !== null) {
+			const b = obj as Record<string, unknown>;
+			const toNum = (val: unknown): number | undefined => {
+				if (typeof val === 'number' && Number.isFinite(val)) return val;
+				if (typeof val === 'string') {
+					const parsed = parseFloat(val);
+					return Number.isFinite(parsed) ? parsed : undefined;
+				}
+				return undefined;
+			};
+			return {
+				x: toNum(b.x),
+				y: toNum(b.y),
+				width: toNum(b.width),
+				height: toNum(b.height),
+			};
+		}
+		return null;
+	}
+
+	/**
 	 * 屏幕安全区域尺寸计算
 	 */
 	private clampBoundsToScreen(bounds: { width?: number; height?: number }): { width: number; height: number } {
@@ -83,8 +119,8 @@ export class StickyWindowManager {
 		let width = bounds.width || this.plugin.settings.defaultWidth;
 		let height = bounds.height || this.plugin.settings.defaultHeight;
 
-		width = Math.max(220, Math.min(width, availW));
-		height = Math.max(200, Math.min(height, availH));
+		width = Math.max(180, Math.min(width, availW));
+		height = Math.max(140, Math.min(height, availH));
 
 		return { width, height };
 	}
@@ -109,7 +145,8 @@ export class StickyWindowManager {
 		// 2. 读取该文件前置参数并进行屏幕安全夹取 (Screen Clamping)
 		const cache = this.app.metadataCache.getFileCache(file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
-		const safeSize = this.clampBoundsToScreen(fm.bounds || {});
+		const bounds = this.parseBounds(fm.bounds);
+		const safeSize = this.clampBoundsToScreen(bounds || {});
 
 		// 3. 打开独立 Popout 窗口
 		const leaf = this.app.workspace.openPopoutLeaf({
@@ -143,20 +180,28 @@ export class StickyWindowManager {
 		const oldToolbar = view.containerEl.querySelector('.evernote-sticky-toolbar');
 		oldToolbar?.remove();
 
-		// 二次定位恢复历史物理坐标 (解决 Obsidian openPopoutLeaf 不支持坐标参数的局限，兼顾单屏与多显示器副屏，防止拔屏失联)
+		// 二次定位恢复历史物理坐标与精确内容尺寸 (突破 Obsidian openPopoutLeaf 尺寸与坐标未严格生效的局限)
 		const cache = this.app.metadataCache.getFileCache(file);
 		const fm = (cache?.frontmatter as StickyNoteMeta) || {};
-		if (fm.bounds && typeof fm.bounds.x === 'number' && typeof fm.bounds.y === 'number') {
-			if (Number.isFinite(fm.bounds.x) && Number.isFinite(fm.bounds.y)) {
-				let safeX = fm.bounds.x;
-				const safeY = Math.max(-20, fm.bounds.y);
+		const bounds = this.parseBounds(fm.bounds);
+		if (bounds) {
+			// 1. 精确二次还原尺寸 (如用户在 YAML 中保存的 width: 319, height: 250)
+			if (typeof bounds.width === 'number' && typeof bounds.height === 'number') {
+				const safeSize = this.clampBoundsToScreen(bounds);
+				setWindowContentSize(targetWin, safeSize.width, safeSize.height);
+			}
+
+			// 2. 精确二次还原物理位置
+			if (typeof bounds.x === 'number' && typeof bounds.y === 'number') {
+				let safeX = bounds.x;
+				const safeY = Math.max(-20, bounds.y);
 
 				// 拔出副屏容错：若当前屏幕处于标准单屏模式且历史 X 坐标已远超当前屏可视边界，自动拉回主屏视野
 				const screen = targetWin.screen;
 				const availLeft = (screen as unknown as Record<string, number | undefined>).availLeft ?? 0;
 				const availW = screen.availWidth || 1920;
 				if (availLeft === 0 && safeX > availW) {
-					safeX = Math.max(20, availW - (fm.bounds.width || 320) - 20);
+					safeX = Math.max(20, availW - (bounds.width || 320) - 20);
 				}
 
 				setWindowPosition(targetWin, safeX, safeY);
@@ -290,7 +335,7 @@ export class StickyWindowManager {
 			// 脏检查：若坐标与尺寸无实质变化（微小抖动 < 2px），直接跳过写入，避免无谓修改 mtime 和触发同步 diff
 			const cache = this.app.metadataCache.getFileCache(file);
 			const currentFm = (cache?.frontmatter as StickyNoteMeta) || {};
-			const prevBounds = currentFm.bounds;
+			const prevBounds = this.parseBounds(currentFm.bounds);
 
 			if (
 				prevBounds &&
@@ -309,7 +354,7 @@ export class StickyWindowManager {
 			}
 
 			await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-				const prev = (fm.bounds as Record<string, unknown>) || {};
+				const prev = this.parseBounds(fm.bounds) || {};
 				fm.bounds = {
 					...prev,
 					x: b.x,

@@ -7,6 +7,8 @@ interface ElectronWindow {
 	setSkipTaskbar?(this: void, skip: boolean): void;
 	getBounds?(this: void): { x: number; y: number; width: number; height: number };
 	setPosition?(this: void, x: number, y: number, animate?: boolean): void;
+	setSize?(this: void, width: number, height: number): void;
+	setContentSize?(this: void, width: number, height: number): void;
 }
 
 interface ElectronRemote {
@@ -142,6 +144,35 @@ export function setWindowPosition(targetWindow: Window, x: number, y: number): b
 	}
 	try {
 		targetWindow.moveTo(Math.round(x), Math.round(y));
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * 调整便笺窗口至指定内容尺寸 (解决 Obsidian openPopoutLeaf 尺寸未生效或被覆盖的问题)
+ */
+export function setWindowContentSize(targetWindow: Window, width: number, height: number): boolean {
+	const bw = getTargetBrowserWindow(targetWindow);
+	if (bw && typeof bw.setContentSize === 'function') {
+		try {
+			bw.setContentSize(Math.round(width), Math.round(height));
+			return true;
+		} catch (e) {
+			console.debug('[DesktopStickyNotes] setContentSize failed:', e);
+		}
+	}
+	if (bw && typeof bw.setSize === 'function') {
+		try {
+			bw.setSize(Math.round(width), Math.round(height));
+			return true;
+		} catch {
+			// 回退
+		}
+	}
+	try {
+		targetWindow.resizeTo(Math.round(width), Math.round(height));
 		return true;
 	} catch {
 		return false;
